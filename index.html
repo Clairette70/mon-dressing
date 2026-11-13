@@ -1,8 +1,13 @@
 <!doctype html>
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Mon Dressing — Dressing et lookbook synchronisés</title>
+<title>Mon Dressing — Fiches vêtements v4</title>
 <style>
 :root{--wine:#654158;--muted:#857b88;--bg:#f8f5f3;--line:#e6dfe3}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#302b35;font:15px Arial,sans-serif}header{background:white;border-bottom:1px solid var(--line);padding:20px max(20px,calc((100vw - 1120px)/2));display:flex;align-items:center;justify-content:space-between;gap:10px}header small,.eyebrow{color:var(--wine);letter-spacing:2px;text-transform:uppercase;font-size:11px}h1,h2,h3{font-family:Georgia,serif;font-weight:normal}h1{font-size:33px;margin:3px 0}h2{font-size:32px}button{border:0;background:var(--wine);color:white;border-radius:9px;padding:12px 15px;cursor:pointer;font-weight:600}button.secondary{background:white;color:var(--wine);border:1px solid var(--line)}button:disabled{opacity:.5;cursor:wait}nav{display:flex;gap:7px;overflow:auto;padding:16px 20px;max-width:1160px;margin:auto}nav button{background:transparent;color:var(--muted);white-space:nowrap}nav button.active{background:var(--wine);color:white}main{max-width:1120px;margin:auto;padding:12px 20px 70px}.hero{background:linear-gradient(110deg,#ede0e7,#f9f4f0);padding:35px;border-radius:18px;margin-bottom:22px}p{line-height:1.55;color:#716874}.hidden{display:none!important}.panel,.tile,.stat{background:white;border:1px solid var(--line);border-radius:14px;padding:20px;margin:12px 0}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:15px}.tile{padding:0;overflow:hidden;margin:0}.tile img{width:100%;aspect-ratio:3/4;object-fit:cover;background:#eee}.tile .body{padding:12px}.tile strong{display:block;margin-bottom:6px}.tile small,.hint{color:var(--muted);font-size:12px}.tile button{padding:8px;margin-top:10px}.toolbar{display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin:18px 0}input,select{font:inherit;padding:11px;border:1px solid var(--line);border-radius:9px;max-width:100%}.stats{display:flex;flex-wrap:wrap;gap:10px}.stat{flex:1;min-width:130px}.stat b{display:block;font:30px Georgia,serif}.empty{padding:30px;background:white;border:1px dashed #cbbdc6;border-radius:12px;text-align:center}.board{background:#f1e9e8;border-radius:15px;padding:20px;margin:18px 0}.boardgrid,.checkgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(125px,1fr));gap:12px}.boardgrid figure{margin:0;background:white;border-radius:10px;overflow:hidden}.boardgrid img,.choice img{width:100%;aspect-ratio:3/4;object-fit:cover}.boardgrid figcaption{padding:8px;font-size:12px}.choice{background:white;border:1px solid var(--line);border-radius:10px;padding:6px}.choice span{display:block;font-size:12px}.formgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}.field{display:flex;flex-direction:column;gap:6px}.field label{font-weight:bold;font-size:13px}.wide{grid-column:1/-1}dialog{border:0;border-radius:15px;width:min(540px,95vw);box-shadow:0 15px 60px #0004}dialog::backdrop{background:#22182788}dialog form{display:grid;gap:15px}dialog menu{display:flex;justify-content:flex-end;gap:10px;padding:0;margin:0}.notice{padding:12px 16px;border-radius:9px;background:#eee3e8;margin:10px 0}footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}@media(max-width:600px){h1{font-size:25px}h2{font-size:27px}.hero{padding:24px}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}header{padding:15px}}
+
+/* Phase 2 : présentation uniforme et formulaire de modification */
+.tile img,.boardgrid img,.choice img{object-fit:contain;background:#f6f4f0;padding:8px;display:block}
+.tile .actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.tile .actions button{margin:0;font-size:12px}.tile .meta{display:block;line-height:1.5}.tile .body{overflow-wrap:anywhere}
+#addDialog{max-height:90dvh;overflow:auto;padding:20px}#addDialog h2{margin:0 0 4px}.field input,.field select,.field textarea{width:100%;min-width:0}.field textarea{font:inherit;padding:11px;border:1px solid var(--line);border-radius:9px;resize:vertical}#photoPreview{max-height:180px;max-width:100%;object-fit:contain;background:#f6f4f0;border-radius:10px;display:block;margin:8px auto}.field .hint{line-height:1.4}.version{color:var(--muted);font-size:11px}#pieceError{color:#9f2946;font-size:13px;line-height:1.4;margin:0}.field label{display:block}
 </style></head><body>
 <header><div><small>Votre studio de style</small><h1>Mon Dressing</h1></div><button id="addTop" onclick="openAdd()" disabled>+ Ajouter une pièce</button></header>
 <nav><button class="active" data-tab="accueil">Accueil</button><button data-tab="dressing">Mon dressing</button><button data-tab="atelier">Créer une tenue</button><button data-tab="lookbook">Lookbook</button><button data-tab="donnees">Mes données</button></nav>
@@ -14,9 +19,24 @@
 <section id="dressing" class="hidden"><div class="toolbar"><h2>Mon dressing</h2><button onclick="openAdd()">+ Ajouter</button></div><div class="toolbar"><input id="search" placeholder="Rechercher une pièce…"><select id="filter"><option value="">Toutes les catégories</option></select></div><div id="pieces" class="grid"></div></section>
 <section id="atelier" class="hidden"><h2>Créer une tenue</h2><p>Choisissez vos vêtements pour composer une planche de style.</p><div class="panel"><div class="field"><label>Nom de la tenue</label><input id="lookname" placeholder="Ex. Élégance de novembre"></div><p class="hint">Cochez les pièces à associer :</p><div id="choices" class="checkgrid"></div><p><button onclick="saveLook()">Enregistrer ma planche</button></p></div></section>
 <section id="lookbook" class="hidden"><h2>Mon lookbook</h2><div id="looks"></div></section>
-<section id="donnees" class="hidden"><h2>Mes données</h2><div class="panel"><p><strong>Vêtements :</strong> enregistrés dans Supabase et synchronisables entre appareils après connexion. Les photos compressées sont conservées dans la colonne photo_url de la base de données.</p><p><strong>Tenues :</strong> enregistrées dans Supabase et retrouvées sur tous vos appareils après connexion.</p><button onclick="exportData()">Exporter une sauvegarde</button> <button class="secondary" onclick="migrateLocal()">Importer mes anciens vêtements du Mac</button> <button class="secondary" onclick="migrateOldLooks()">Importer mes anciennes tenues locales</button><p class="hint">Les imports sont facultatifs et peuvent créer des doublons s'ils sont lancés plusieurs fois. Conservez votre sauvegarde JSON.</p><button class="secondary" onclick="logout()">Me déconnecter</button></div></section>
-</div></main><footer>Mon Dressing · Votre garde-robe personnelle</footer>
-<dialog id="addDialog"><form id="pieceForm"><h2>Ajouter une pièce</h2><div class="formgrid"><div class="field wide"><label>Nom de la pièce</label><input id="name" required maxlength="80" placeholder="Ex. Jupe midi prune"></div><div class="field"><label>Catégorie</label><select id="category"><option>Hauts</option><option>Pantalons</option><option>Jupes</option><option>Robes</option><option>Vestes et manteaux</option><option>Chaussures</option><option>Sacs</option><option>Accessoires</option><option>Créations couture</option><option>Autres</option></select></div><div class="field"><label>Couleur</label><input id="color" placeholder="Bleu lavande"></div><div class="field"><label>Saison</label><select id="season"><option>Toutes saisons</option><option>Printemps</option><option>Été</option><option>Automne</option><option>Hiver</option></select></div><div class="field"><label>Marque</label><input id="brand" placeholder="Caroll"></div><div class="field wide"><label>Photo</label><input id="photo" type="file" accept="image/*" required></div></div><menu><button type="button" class="secondary" onclick="document.getElementById('addDialog').close()">Annuler</button><button id="savePiece" type="submit">Enregistrer</button></menu></form></dialog>
+<section id="donnees" class="hidden"><h2>Mes données</h2><div class="panel"><p><strong>Vêtements :</strong> enregistrés dans Supabase et synchronisables entre appareils après connexion. Les images sont conservées dans la base de données. Les PNG réellement transparents gardent leur transparence ; les autres images sont optimisées en JPEG. Les anciens fonds intégrés à une photo ne sont pas supprimés automatiquement.</p><p><strong>Tenues :</strong> enregistrées dans Supabase et retrouvées sur tous vos appareils après connexion.</p><button onclick="exportData()">Exporter une sauvegarde</button> <button class="secondary" onclick="migrateLocal()">Importer mes anciens vêtements du Mac</button> <button class="secondary" onclick="migrateOldLooks()">Importer mes anciennes tenues locales</button><p class="hint">Les imports sont facultatifs et peuvent créer des doublons s'ils sont lancés plusieurs fois. Conservez votre sauvegarde JSON.</p><button class="secondary" onclick="logout()">Me déconnecter</button></div></section>
+</div></main><footer>Mon Dressing · Votre garde-robe personnelle · Version 4 — Fiches modifiables</footer>
+<dialog id="addDialog"><form id="pieceForm"><h2 id="pieceTitle">Ajouter une pièce</h2><p class="hint" id="pieceHint">Les champs facultatifs pourront être complétés plus tard.</p><div class="formgrid">
+<div class="field wide"><label for="name">Nom de la pièce *</label><input id="name" required maxlength="120" placeholder="Ex. Jean barrel brut"></div>
+<div class="field"><label for="category">Catégorie *</label><select id="category" required><option>Hauts</option><option>Pantalons</option><option>Jupes</option><option>Robes</option><option>Vestes et manteaux</option><option>Chaussures</option><option>Sacs</option><option>Accessoires</option><option>Créations couture</option><option>Autres</option></select></div>
+<div class="field"><label for="subcategory">Type de pièce</label><input id="subcategory" placeholder="Ex. Chemise, jean, mocassins"></div>
+<div class="field"><label for="color">Couleur</label><input id="color" placeholder="Ex. Bleu lavande"></div>
+<div class="field"><label for="season">Saison</label><select id="season"><option>Toutes saisons</option><option>Printemps</option><option>Été</option><option>Automne</option><option>Hiver</option><option>Printemps / Été</option><option>Automne / Hiver</option></select></div>
+<div class="field"><label for="brand">Marque</label><input id="brand" placeholder="Ex. Caroll"></div>
+<div class="field"><label for="size">Taille</label><input id="size" placeholder="Ex. 42, L"></div>
+<div class="field"><label for="material">Matière</label><input id="material" placeholder="Ex. Coton, laine, viscose"></div>
+<div class="field"><label for="cut">Coupe</label><input id="cut" placeholder="Ex. Wide leg, ajustée, oversize"></div>
+<div class="field"><label for="style">Style</label><input id="style" placeholder="Ex. Chic, décontracté, habillé"></div>
+<div class="field"><label for="warmth">Chaleur</label><select id="warmth"><option value="">Non renseignée</option><option>Légère</option><option>Intermédiaire</option><option>Chaude</option><option>Très chaude</option></select></div>
+<div class="field"><label for="comfort">Confort</label><select id="comfort"><option value="">Non renseigné</option><option>Très confortable</option><option>Confortable</option><option>Peu confortable</option></select></div>
+<div class="field wide"><label for="description">Notes personnelles</label><textarea id="description" rows="3" placeholder="Ex. Taille haute, manches 3/4, à porter avec un haut rentré…"></textarea></div>
+<div class="field wide"><label for="photo" id="photoLabel">Photo *</label><img id="photoPreview" class="hidden" alt="Aperçu du vêtement"><input id="photo" type="file" accept="image/*"><span class="hint" id="photoHint">PNG transparent ou JPEG. Les vrais fonds transparents sont conservés.</span></div>
+</div><p id="pieceError" class="hidden" role="alert"></p><menu><button type="button" class="secondary" id="cancelPiece" onclick="$('addDialog').close()">Annuler</button><button id="savePiece" type="submit">Enregistrer</button></menu></form></dialog>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 const SUPABASE_URL='https://vidypbmhsdjacjrxeqlr.supabase.co';
@@ -31,12 +51,12 @@ function status(t){$('status').textContent=t}
 function showLogin(yes){$('login').classList.toggle('hidden',!yes);$('app').classList.toggle('hidden',yes);$('addTop').disabled=yes}
 async function init(){if(!window.supabase){status('Impossible de charger la bibliothèque Supabase. Vérifiez votre connexion Internet.');return}db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);const {data,error}=await db.auth.getUser();if(error||!data.user){showLogin(true);status('Connectez-vous pour accéder à votre dressing.');return}user=data.user;showLogin(false);await loadPieces()}
 $('loginForm').onsubmit=async e=>{e.preventDefault();if(!db)return;status('Connexion en cours…');const {data,error}=await db.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error){status('Connexion refusée : '+error.message);return}user=data.user;showLogin(false);await loadPieces()};
-async function logout(){await db.auth.signOut();user=null;pieces=[];showLogin(true);status('Déconnectée.')}
+async function logout(){await db.auth.signOut();user=null;pieces=[];looks=[];showLogin(true);status('Déconnectée.')}
 async function loadPieces(){
   status('Chargement du dressing depuis Supabase…');
-  const {data,error}=await db.from('vêtements').select('*').order('created_at',{ascending:false});
-  if(error){status('Erreur vêtements : '+error.message);return}
-  pieces=data||[];
+  const all=[]; const batch=30;
+  for(let offset=0;;offset+=batch){const {data,error}=await db.from('vêtements').select('*').order('created_at',{ascending:false}).order('id',{ascending:false}).range(offset,offset+batch-1);if(error){status('Erreur vêtements : '+error.message);return}all.push(...(data||[]));if(!data||data.length<batch)break}
+  pieces=all;
   await loadLooks();
 }
 async function loadLooks(){
@@ -52,10 +72,25 @@ async function loadLooks(){
 }
 function switchTab(tab){document.querySelectorAll('#app>section').forEach(s=>s.classList.toggle('hidden',s.id!==tab));document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));render()}
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
-function openAdd(){if(!user)return;$('pieceForm').reset();$('addDialog').showModal()}
-function tile(p){return `<article class="tile"><img src="${esc(p.photo_url||'')}" alt="${esc(p.nom)}"><div class="body"><strong>${esc(p.nom)}</strong><small>${esc(p.categorie)} · ${esc(p.couleur)}</small><br><button class="secondary" onclick="removePiece(${Number(p.id)})">Supprimer</button></div></article>`}
+let editingId=null,previewObjectUrl=null;
+const fieldMap={name:'nom',category:'categorie',subcategory:'sous_categorie',color:'couleur',season:'saison',brand:'marque',size:'taille',material:'matiere',cut:'coupe',style:'style',warmth:'chaleur',comfort:'confort',description:'description'};
+function setSelectValue(el,value){if(value==null||value===''){if([...el.options].some(o=>o.value===''))el.value='';return}if(![...el.options].some(o=>o.value===String(value)))el.add(new Option(String(value),String(value)));el.value=String(value)}
+function setPreview(src){const img=$('photoPreview');img.classList.toggle('hidden',!src);if(src)img.src=src;else img.removeAttribute('src')}
+function clearPreviewObject(){if(previewObjectUrl){URL.revokeObjectURL(previewObjectUrl);previewObjectUrl=null}}
+function showPieceForm(p){if(!user)return;clearPreviewObject();$('pieceForm').reset();$('pieceError').classList.add('hidden');editingId=p?String(p.id):null;
+  $('pieceTitle').textContent=p?'Modifier la fiche':'Ajouter une pièce';$('photoLabel').textContent=p?'Remplacer la photo (facultatif)':'Photo *';$('photo').required=!p;
+  $('photoHint').textContent=p?'Sans nouvelle photo, votre image actuelle est conservée. PNG transparent ou JPEG.':'PNG transparent ou JPEG. Les vrais fonds transparents sont conservés.';
+  $('pieceHint').textContent=p?'Les modifications sont synchronisées et conservent le vêtement dans ses tenues.':'Les champs facultatifs pourront être complétés plus tard.';
+  if(p){for(const [id,key] of Object.entries(fieldMap)){const el=$(id);if(el.tagName==='SELECT')setSelectValue(el,p[key]);else el.value=p[key]??''}}
+  setPreview(p?.photo_url||'');$('addDialog').showModal();
+}
+function openAdd(){showPieceForm(null)}
+function openEdit(id){const p=pieces.find(x=>String(x.id)===String(id));if(!p)return alert('Cette fiche est introuvable. Actualisez le dressing.');showPieceForm(p)}
+$('photo').addEventListener('change',()=>{clearPreviewObject();const f=$('photo').files[0];if(f){previewObjectUrl=URL.createObjectURL(f);setPreview(previewObjectUrl)}else setPreview(pieces.find(p=>String(p.id)===editingId)?.photo_url||'')});
+$('addDialog').addEventListener('close',()=>{clearPreviewObject();setPreview('');editingId=null});
+function tile(p){return `<article class="tile"><img src="${esc(p.photo_url||'')}" alt="${esc(p.nom)}" loading="lazy"><div class="body"><strong>${esc(p.nom)}</strong><small class="meta">${esc([p.categorie,p.couleur].filter(Boolean).join(' · '))}</small><small class="meta">${esc([p.marque,p.taille,p.coupe].filter(Boolean).join(' · '))}</small><div class="actions"><button onclick="openEdit(${Number(p.id)})">Modifier</button><button class="secondary" onclick="removePiece(${Number(p.id)})">Supprimer</button></div></div></article>`}
 function empty(t){return `<div class="empty"><p>${esc(t)}</p></div>`}
-function render(){if(!user)return;const ps=pieces;$('countPieces').textContent=ps.length;$('countLooks').textContent=looks.length;$('countCats').textContent=new Set(ps.map(p=>p.categorie)).size;$('recent').innerHTML=ps.length?ps.slice(0,4).map(tile).join(''):empty('Ajoutez votre première pièce.');const cats=[...new Set(ps.map(p=>p.categorie).filter(Boolean))].sort(),selected=$('filter').value;$('filter').innerHTML='<option value="">Toutes les catégories</option>'+cats.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');$('filter').value=cats.includes(selected)?selected:'';const q=$('search').value.toLowerCase(),filtered=ps.filter(p=>(!$('filter').value||p.categorie===$('filter').value)&&[p.nom,p.couleur,p.marque,p.categorie].join(' ').toLowerCase().includes(q));$('pieces').innerHTML=filtered.length?filtered.map(tile).join(''):empty('Aucune pièce trouvée.');$('choices').innerHTML=ps.length?ps.map(p=>`<label class="choice"><img src="${esc(p.photo_url||'')}" alt=""><span><input type="checkbox" name="pieceChoice" value="${p.id}"> ${esc(p.nom)}</span></label>`).join(''):empty('Ajoutez des vêtements.');$('looks').innerHTML=looks.length?looks.slice().reverse().map(l=>{const items=l.ids.map(id=>ps.find(p=>String(p.id)===String(id))).filter(Boolean);return `<article class="board"><h3>${esc(l.name)}</h3><div class="boardgrid">${items.map(p=>`<figure><img src="${esc(p.photo_url||'')}" alt="${esc(p.nom)}"><figcaption>${esc(p.nom)}</figcaption></figure>`).join('')}</div><p><button class="secondary" onclick="removeLook(${Number(l.id)})">Supprimer la tenue</button></p></article>`}).join(''):empty('Vos planches apparaîtront ici.')}
+function render(){if(!user)return;const ps=pieces;$('countPieces').textContent=ps.length;$('countLooks').textContent=looks.length;$('countCats').textContent=new Set(ps.map(p=>p.categorie)).size;$('recent').innerHTML=ps.length?ps.slice(0,4).map(tile).join(''):empty('Ajoutez votre première pièce.');const cats=[...new Set(ps.map(p=>p.categorie).filter(Boolean))].sort(),selected=$('filter').value;$('filter').innerHTML='<option value="">Toutes les catégories</option>'+cats.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');$('filter').value=cats.includes(selected)?selected:'';const q=$('search').value.toLowerCase(),filtered=ps.filter(p=>(!$('filter').value||p.categorie===$('filter').value)&&[p.nom,p.couleur,p.marque,p.categorie,p.sous_categorie,p.coupe,p.style,p.matiere].join(' ').toLowerCase().includes(q));$('pieces').innerHTML=filtered.length?filtered.map(tile).join(''):empty('Aucune pièce trouvée.');$('choices').innerHTML=ps.length?ps.map(p=>`<label class="choice"><img src="${esc(p.photo_url||'')}" alt=""><span><input type="checkbox" name="pieceChoice" value="${p.id}"> ${esc(p.nom)}</span></label>`).join(''):empty('Ajoutez des vêtements.');$('looks').innerHTML=looks.length?looks.slice().reverse().map(l=>{const items=l.ids.map(id=>ps.find(p=>String(p.id)===String(id))).filter(Boolean);return `<article class="board"><h3>${esc(l.name)}</h3><div class="boardgrid">${items.map(p=>`<figure><img src="${esc(p.photo_url||'')}" alt="${esc(p.nom)}"><figcaption>${esc(p.nom)}</figcaption></figure>`).join('')}</div><p><button class="secondary" onclick="removeLook(${Number(l.id)})">Supprimer la tenue</button></p></article>`}).join(''):empty('Vos planches apparaîtront ici.')}
 async function removePiece(id){if(!confirm('Supprimer définitivement ce vêtement de Supabase ?'))return;const {error}=await db.from('vêtements').delete().eq('id',id);if(error){alert('Suppression impossible : '+error.message);return}await loadPieces()}
 async function saveLook(){
   const ids=[...document.querySelectorAll('input[name="pieceChoice"]:checked')].map(x=>Number(x.value));
@@ -73,8 +108,41 @@ async function removeLook(id){
   if(error){alert('Suppression impossible : '+error.message);return}
   await loadLooks();
 }
-function compress(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onerror=reject;reader.onload=()=>{const img=new Image();img.onerror=reject;img.onload=()=>{const max=700,scale=Math.min(1,max/Math.max(img.width,img.height)),canvas=document.createElement('canvas');canvas.width=Math.round(img.width*scale);canvas.height=Math.round(img.height*scale);canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);resolve(canvas.toDataURL('image/jpeg',.65))};img.src=reader.result};reader.readAsDataURL(file)})}
-$('pieceForm').onsubmit=async e=>{e.preventDefault();const file=$('photo').files[0];if(!file||!file.type.startsWith('image/'))return alert('Choisissez une photo.');$('savePiece').disabled=true;try{const photo=await compress(file);const {error}=await db.from('vêtements').insert({nom:$('name').value.trim(),categorie:$('category').value,couleur:$('color').value.trim(),saison:$('season').value,marque:$('brand').value.trim(),photo_url:photo});if(error)throw error;$('addDialog').close();await loadPieces();switchTab('dressing')}catch(err){alert('Enregistrement impossible : '+err.message)}finally{$('savePiece').disabled=false}};
+function compress(file){return new Promise((resolve,reject)=>{
+  const url=URL.createObjectURL(file),img=new Image();
+  img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('Cette photo ne peut pas être lue. Essayez un PNG ou un JPEG.'))};
+  img.onload=()=>{try{
+    const max=900,scale=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight)),canvas=document.createElement('canvas');
+    canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
+    const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0,canvas.width,canvas.height);
+    const pixels=ctx.getImageData(0,0,canvas.width,canvas.height).data;let alpha=false;
+    for(let i=3;i<pixels.length;i+=4){if(pixels[i]<255){alpha=true;break}}
+    // Conserver le canal alpha quand il existe. Un fond blanc/noir/damier déjà intégré reste opaque.
+    resolve(alpha?canvas.toDataURL('image/png'):canvas.toDataURL('image/jpeg',.82));
+  }catch(err){reject(err)}finally{URL.revokeObjectURL(url)}};img.src=url;
+})}
+$('pieceForm').onsubmit=async e=>{
+  e.preventDefault();if(!user||$('savePiece').disabled)return;
+  const currentId=editingId,file=$('photo').files[0];
+  const errorBox=$('pieceError');errorBox.classList.add('hidden');
+  function fail(message){errorBox.textContent=message;errorBox.classList.remove('hidden')}
+  if(!currentId&&!file){fail('Choisissez une photo.');return}
+  if(file&&file.type&&!file.type.startsWith('image/')){fail('Choisissez une image PNG ou JPEG.');return}
+  const payload={};for(const [id,key] of Object.entries(fieldMap))payload[key]=$(id).value.trim();
+  if(!payload.nom){fail('Donnez un nom à la pièce.');return}
+  $('savePiece').disabled=true;$('cancelPiece').disabled=true;$('savePiece').textContent='Enregistrement…';
+  try{
+    if(file)payload.photo_url=await compress(file);
+    // Une modification conserve l’identifiant et la photo existante si aucun remplacement demandé.
+    let result;
+    if(currentId){result=await db.from('vêtements').update(payload).eq('id',currentId).select('id').single()}
+    else{result=await db.from('vêtements').insert(payload).select('id').single()}
+    if(result.error)throw result.error;
+    $('addDialog').close();await loadPieces();switchTab('dressing');
+  }catch(err){fail('Enregistrement impossible : '+(err.message||String(err)))}
+  finally{$('savePiece').disabled=false;$('cancelPiece').disabled=false;$('savePiece').textContent='Enregistrer'}
+};
+$('addDialog').addEventListener('cancel',e=>{if($('savePiece').disabled)e.preventDefault()});
 $('search').oninput=render;$('filter').onchange=render;
 async function migrateOldLooks(){
   if(!localLooks.length){alert('Aucune ancienne tenue locale à importer sur cet appareil.');return}
