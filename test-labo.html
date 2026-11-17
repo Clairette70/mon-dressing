@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Mon Dressing — Test du laboratoire</title>
+  <style>
+    :root { color-scheme:light; --wine:#654158; --ink:#302b35; --muted:#6e6571; --edge:#e9dfe5; --cream:#f8f5f3; --green:#1c704e; --red:#9a2d47; }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--cream);color:var(--ink);font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+    main{width:min(600px,calc(100% - 32px));margin:52px auto 60px}
+    .eyebrow{font-size:12px;letter-spacing:.17em;text-transform:uppercase;color:var(--wine);font-weight:700}
+    h1{font:normal 36px/1.12 Georgia,serif;margin:10px 0 12px}
+    p{color:var(--muted);margin:8px 0 17px}
+    .card{background:white;border:1px solid var(--edge);border-radius:18px;padding:26px;margin-top:22px;box-shadow:0 6px 22px rgba(90,40,70,.04)}
+    button{border:0;border-radius:10px;background:var(--wine);color:#fff;font:600 16px/1.3 inherit;font-family:inherit;font-weight:650;font-size:16px;padding:13px 20px;min-height:48px;cursor:pointer}
+    button:hover{filter:brightness(.93)}button:disabled{opacity:.55;cursor:wait}
+    input{width:100%;padding:12px;border:1px solid #cbbec6;border-radius:9px;font:inherit;margin:5px 0 15px}
+    label{display:block;font-weight:600;font-size:14px}
+    .hint{font-size:13px;color:var(--muted)}
+    .status{padding:15px 16px;border-radius:10px;border:1px solid var(--edge);background:var(--cream);margin-top:20px}
+    .status.good{border-color:#a8d3c0;background:#edf8f2;color:var(--green)}
+    .status.bad{border-color:#dfb9c5;background:#fff0f3;color:var(--red)}
+    .status strong{display:block;margin-bottom:5px}
+    dl{display:grid;grid-template-columns:1fr auto;gap:10px 18px;margin:16px 0 0}
+    dt{color:var(--muted)}dd{margin:0;font-weight:700;font-variant-numeric:tabular-nums}
+    a{color:var(--wine)}
+    .hidden{display:none!important}
+    .small{font-size:13px}
+    @media(max-width:540px){main{margin:27px auto 40px}.card{padding:20px}h1{font-size:29px}button{width:100%}}
+  </style>
+</head>
+<body>
+  <main>
+    <div class="eyebrow">Mon Dressing · Laboratoire</div>
+    <h1>Test de connexion</h1>
+    <p>Cette page vérifie que notre nouvelle fonction Supabase arrive à lire le catalogue de ton dressing. <strong>Aucune tenue n'est générée</strong> et aucun appel d'IA payante n'est effectué.</p>
+    <section class="card" aria-label="Test du laboratoire">
+      <div id="preparation" class="hint">Vérification de la connexion à Mon Dressing…</div>
+      <div id="login" class="hidden">
+        <p>Tu n'es pas connectée ici. Utilise les <strong>mêmes identifiants que pour Mon Dressing</strong> (compte Supabase).</p>
+        <form id="loginForm">
+          <label for="email">Adresse e-mail</label>
+          <input id="email" type="email" autocomplete="username" required>
+          <label for="password">Mot de passe de Mon Dressing</label>
+          <input id="password" type="password" autocomplete="current-password" required>
+          <button id="loginButton" type="submit">Me connecter</button>
+        </form>
+      </div>
+      <div id="connected" class="hidden">
+        <p>Tu es connectée. Clique simplement sur ce bouton :</p>
+        <button id="testButton" type="button">Tester la connexion</button>
+      </div>
+      <div id="result" class="status hidden" role="status" aria-live="polite"></div>
+    </section>
+    <p class="small">La V9 et la fonction <code>assistant-style</code> ne sont pas modifiées. Le test appelle uniquement <code>assistant-style-labo</code>.</p>
+    <p class="small"><a href="./">Retour à Mon Dressing</a></p>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script>
+    'use strict';
+    // Clé publique de l'application V9, PAS une clé API secrète.
+    const SUPABASE_URL = 'https://vidypbmhsdjacjrxeqlr.supabase.co';
+    const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_Mt_Wtn1lLTPYOb5Sh2PH3A_5GdD3yRd';
+    const $ = id => document.getElementById(id);
+    let client;
+
+    function displayStatus(title, detail, kind) {
+      const result = $('result');
+      result.className = 'status' + (kind ? ' ' + kind : '');
+      result.replaceChildren();
+      const heading = document.createElement('strong');
+      heading.textContent = title;
+      result.append(heading);
+      if (detail) {
+        const paragraph = document.createElement('div');
+        paragraph.textContent = detail;
+        result.append(paragraph);
+      }
+    }
+    function setAuthenticated(yes) {
+      $('preparation').classList.add('hidden');
+      $('login').classList.toggle('hidden', yes);
+      $('connected').classList.toggle('hidden', !yes);
+    }
+    async function init() {
+      if (!window.supabase) {
+        $('preparation').textContent = 'Connexion impossible : la bibliothèque Supabase ne s’est pas chargée. Vérifie ta connexion Internet puis actualise la page.';
+        return;
+      }
+      client = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+      try {
+        const { data, error } = await client.auth.getUser();
+        setAuthenticated(!error && !!data?.user);
+      } catch {
+        setAuthenticated(false);
+      }
+    }
+    $('loginForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      const button = $('loginButton');
+      button.disabled = true;
+      displayStatus('Connexion en cours…', '', '');
+      try {
+        const { error } = await client.auth.signInWithPassword({
+          email: $('email').value.trim(),
+          password: $('password').value
+        });
+        if (error) throw error;
+        $('password').value = '';
+        setAuthenticated(true);
+        displayStatus('Connexion réussie', 'Tu peux maintenant lancer le test.', 'good');
+      } catch {
+        displayStatus('Connexion refusée', 'Vérifie les identifiants de ton compte Mon Dressing.', 'bad');
+      } finally {
+        button.disabled = false;
+      }
+    });
+    $('testButton').addEventListener('click', async () => {
+      const button = $('testButton');
+      button.disabled = true;
+      displayStatus('Test en cours…', 'Lecture du nombre de vêtements, sans appel à une IA payante.', '');
+      try {
+        const { data: auth, error: authError } = await client.auth.getSession();
+        if (authError || !auth?.session?.access_token) {
+          setAuthenticated(false);
+          throw new Error('Ta session a expiré. Reconnecte-toi avec le compte Mon Dressing.');
+        }
+        const response = await fetch(SUPABASE_URL + '/functions/v1/assistant-style-labo', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': SUPABASE_PUBLISHABLE_KEY,
+            'Authorization': 'Bearer ' + auth.session.access_token
+          },
+          body: JSON.stringify({ mode:'diagnostic' })
+        });
+        let result;
+        try { result = await response.json(); } catch { throw new Error('Réponse illisible (code HTTP ' + response.status + ').'); }
+        if (!response.ok) throw new Error((typeof result?.error === 'string' ? result.error : 'Erreur de connexion') + ' (HTTP ' + response.status + ').');
+        if (result?.status !== 'pret' || !Number.isInteger(result?.nombre_pieces) || !Number.isInteger(result?.nombre_indexees)) {
+          throw new Error('Le laboratoire répond, mais son diagnostic est incomplet.');
+        }
+        const count = Number(result.nombre_pieces);
+        const indexed = Number(result.nombre_indexees);
+        if (count !== indexed) throw new Error('Incohérence : ' + count + ' pièces, mais ' + indexed + ' indexées.');
+        displayStatus('Connexion réussie', 'Le laboratoire accède à ton dressing et a indexé ' + indexed + ' pièce' + (indexed > 1 ? 's' : '') + '.', 'good');
+        const dl = document.createElement('dl');
+        for (const [label, value] of [
+          ['Vêtements trouvés', count],
+          ['Vêtements indexés', indexed],
+          ['IA payante configurée', result.fournisseur_configure ? 'Oui' : 'Non — normal pour le moment']
+        ]) {
+          const dt = document.createElement('dt'); dt.textContent = label;
+          const dd = document.createElement('dd'); dd.textContent = String(value);
+          dl.append(dt, dd);
+        }
+        $('result').append(dl);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Erreur inattendue.';
+        const isNetwork = /Failed to fetch|Load failed|NetworkError|fetch/i.test(message);
+        displayStatus('Test non validé', isNetwork
+          ? 'La requête a été bloquée ou le laboratoire est inaccessible. Ouvre la page depuis GitHub Pages (et non depuis le dossier Téléchargements), puis réessaie.'
+          : message, 'bad');
+      } finally {
+        button.disabled = false;
+      }
+    });
+    init();
+  </script>
+</body>
+</html>
