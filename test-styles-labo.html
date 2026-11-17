@@ -1,9 +1,10 @@
+
 <!doctype html>
 <html lang="fr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mon Dressing — Tests A et B</title>
+<title>Mon Dressing — Tests stylistiques A, B et C</title>
 <style>
 :root{--prune:#654158;--fond:#f8f5f3;--bord:#e6dfe3}
 *{box-sizing:border-box}body{margin:0;background:var(--fond);color:#302b35;font:15px Arial,sans-serif}
@@ -47,6 +48,12 @@ label{display:block;margin-bottom:5px}
 <button id="boutonB" disabled>Lancer le test B</button>
 </section>
 </div>
+<section class="card">
+<h2>C. Jean, haut et chic décalé</h2>
+<p class="small">Envie : Chic décontracté · Programme : Sortie en ville · Ressenti : Normal · Confort : Équilibré</p>
+<p>Construire une silhouette différente avec un <strong>jean du dressing</strong>, un haut et des chaussures. Une veste ou un sac seulement s'ils améliorent l'ensemble. Priorité aux proportions sur une silhouette en A, avec une touche rock ou rétro si elle est justifiée.</p>
+<button id="boutonC" disabled>Lancer le test C</button>
+</section>
 <div class="card">
 <h2>Résultat du dernier test</h2>
 <p id="etat" class="notice">Aucun test lancé.</p>
@@ -68,10 +75,14 @@ const prompts = {
   B: {
     envie: 'Rock', programme: 'Sortie en ville', ressenti: 'Normal', confort: 'Élégance prioritaire',
     precisions: 'Compose une tenue autour de ma robe blazer noire à double boutonnage dans un esprit rock chic, féminin et moderne. Je recherche une silhouette affirmée, avec une touche audacieuse, mais sans tomber dans l’excès. Choisis librement les chaussures et accessoires les plus pertinents parmi mon dressing. L’équilibre des proportions et l’allure générale restent prioritaires.'
+  },
+  C: {
+    envie: 'Chic décontracté', programme: 'Sortie en ville', ressenti: 'Normal', confort: 'Équilibré',
+    precisions: 'Crée une silhouette complète à partir d’un jean déjà présent dans mon dressing, d’un haut et de chaussures. Recherche un chic décalé, féminin et moderne, avec éventuellement une touche rock ou rétro, sans la forcer. Privilégie avant tout l’équilibre des volumes, des longueurs et des proportions pour une morphologie en A ; un haut structurant peut aider, sans devenir une règle absolue. Compare plusieurs associations possibles et retiens la meilleure. N’ajoute une veste ou un sac que si leur apport esthétique est réel. Aucune obligation de porter des talons ni de multiplier les accessoires. Donne un conseil concret, sans flatterie ni affirmation sur des photos que tu ne vois pas.'
   }
 };
 function afficherEtat(texte){ $('etat').textContent=texte; }
-function boutons(disabled){ $('boutonA').disabled=disabled; $('boutonB').disabled=disabled; }
+function boutons(disabled){ $('boutonA').disabled=disabled; $('boutonB').disabled=disabled; $('boutonC').disabled=disabled; }
 async function verifierSession(){
   const {data,error} = await client.auth.getSession();
   const connecte = !error && Boolean(data.session);
@@ -133,6 +144,7 @@ async function lancer(test){
 }
 $('boutonA').onclick=()=>lancer('A');
 $('boutonB').onclick=()=>lancer('B');
+$('boutonC').onclick=()=>lancer('C');
 verifierSession();
 </script>
 </body>
