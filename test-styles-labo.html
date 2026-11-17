@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mon Dressing — Tests stylistiques A, B et C</title>
+<title>Mon Dressing — Tests stylistiques A à E</title>
 <style>
 :root{--prune:#654158;--fond:#f8f5f3;--bord:#e6dfe3}
 *{box-sizing:border-box}body{margin:0;background:var(--fond);color:#302b35;font:15px Arial,sans-serif}
@@ -19,6 +19,13 @@ button:disabled{opacity:.5;cursor:wait}input{padding:12px;border:1px solid var(-
 .small{font-size:13px;color:#6d6370;line-height:1.5}.notice{padding:12px;background:#f3ebf1;border-radius:10px;margin:12px 0;white-space:pre-wrap;overflow-wrap:anywhere}
 pre{white-space:pre-wrap;word-break:break-word;background:#f8f5f3;padding:12px;border-radius:10px}
 label{display:block;margin-bottom:5px}
+.compare{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.compare .card{margin:0;padding:14px}
+.compare h3{font-family:Georgia,serif;font-weight:normal;font-size:20px;margin:8px 0}
+.compare .item img{height:110px}
+.compare .items{grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
+.muted{color:#6d6370;font-size:13px}
+.warning{background:#fff5e6;border:1px solid #ead9b3;padding:12px;border-radius:9px;margin:10px 0}
 </style>
 </head>
 <body>
@@ -54,6 +61,30 @@ label{display:block;margin-bottom:5px}
 <p>Construire une silhouette différente avec un <strong>jean du dressing</strong>, un haut et des chaussures. Une veste ou un sac seulement s'ils améliorent l'ensemble. Priorité aux proportions sur une silhouette en A, avec une touche rock ou rétro si elle est justifiée.</p>
 <button id="boutonC" disabled>Lancer le test C</button>
 </section>
+
+<div class="grid">
+<section class="card">
+<h2>D. Jupe et blouse — première tenue</h2>
+<p class="small">Envie : Féminine et moderne · Programme : Sortie en ville · Confort : Équilibré</p>
+<p>Créer une silhouette sophistiquée avec une jupe et une blouse du dressing, et des chaussures. La veste et le sac restent facultatifs. Priorité à l'équilibre des proportions.</p>
+<button id="boutonD" disabled>Lancer le test D</button>
+</section>
+<section class="card">
+<h2>E. Une vraie autre proposition</h2>
+<p class="small">Même envie et même occasion que le test D.</p>
+<p>Tester la diversité : demander une autre association, en changeant si possible la jupe <em>et</em> la blouse, plutôt qu'un simple accessoire.</p>
+<button id="boutonE" disabled>Lancer le test E après D</button>
+<p class="small">Lance D puis E sans actualiser la page. L'IA recevra la liste des pièces utilisées au test D.</p>
+</section>
+</div>
+<section class="card" id="comparaison" hidden>
+<h2>Comparaison des tests D et E</h2>
+<p id="comparaisonStatut" class="notice">Lance les deux tests pour comparer les choix.</p>
+<div class="compare">
+<div class="card"><h3>Test D — Première proposition</h3><div id="comparaisonD" class="small">En attente du test D.</div></div>
+<div class="card"><h3>Test E — Alternative</h3><div id="comparaisonE" class="small">En attente du test E.</div></div>
+</div>
+</section>
 <div class="card">
 <h2>Résultat du dernier test</h2>
 <p id="etat" class="notice">Aucun test lancé.</p>
@@ -79,10 +110,24 @@ const prompts = {
   C: {
     envie: 'Chic décontracté', programme: 'Sortie en ville', ressenti: 'Normal', confort: 'Équilibré',
     precisions: 'Crée une silhouette complète à partir d’un jean déjà présent dans mon dressing, d’un haut et de chaussures. Recherche un chic décalé, féminin et moderne, avec éventuellement une touche rock ou rétro, sans la forcer. Privilégie avant tout l’équilibre des volumes, des longueurs et des proportions pour une morphologie en A ; un haut structurant peut aider, sans devenir une règle absolue. Compare plusieurs associations possibles et retiens la meilleure. N’ajoute une veste ou un sac que si leur apport esthétique est réel. Aucune obligation de porter des talons ni de multiplier les accessoires. Donne un conseil concret, sans flatterie ni affirmation sur des photos que tu ne vois pas.'
+  },
+  D: {
+    envie: 'Féminine et moderne', programme: 'Sortie en ville', ressenti: 'Normal', confort: 'Équilibré',
+    precisions: 'Crée une tenue féminine et sophistiquée, réellement portable, en sélectionnant une jupe et une blouse de mon dressing, ainsi que des chaussures. Si aucune blouse adaptée n’est disponible, choisis un haut féminin approprié et signale ce compromis. Privilégie l’équilibre de la silhouette en A : mets en valeur la ligne des épaules sans surcharger les hanches. Compare plusieurs possibilités puis choisis la meilleure. Une veste ou un sac uniquement si cela améliore vraiment l’ensemble. Évite les associations prévisibles ou artificiellement chargées. Explique les choix de façon concise.'
+  },
+  E: {
+    envie: 'Féminine et moderne', programme: 'Sortie en ville', ressenti: 'Normal', confort: 'Équilibré',
+    precisions: 'Propose une deuxième interprétation de la tenue jupe et blouse pour une sortie en ville, aussi aboutie que la première, mais réellement différente. La silhouette et les proportions priment. Essaie de changer les deux pièces principales (jupe et blouse) plutôt que de simplement remplacer les chaussures, le sac ou la veste. N’ajoute pas de pièce qui n’améliore pas l’ensemble. Les pièces de la première tenue sont indiquées dans previousPieceIds et ne sont pas interdites individuellement, mais leur combinaison complète ne doit pas être répétée. Conseils précis et concis.'
   }
 };
+let derniereTenueD = null;
 function afficherEtat(texte){ $('etat').textContent=texte; }
-function boutons(disabled){ $('boutonA').disabled=disabled; $('boutonB').disabled=disabled; $('boutonC').disabled=disabled; }
+let indisponible = true;
+function boutons(disabled){
+  indisponible = disabled;
+  for(const id of ['boutonA','boutonB','boutonC','boutonD']) $(id).disabled = disabled;
+  $('boutonE').disabled = disabled || !derniereTenueD;
+}
 async function verifierSession(){
   const {data,error} = await client.auth.getSession();
   const connecte = !error && Boolean(data.session);
@@ -98,8 +143,8 @@ $('connecter').onclick=async()=>{
   $('password').value='';
   await verifierSession();
 };
-function afficherTenue(result){
-  const root=$('resultat'); root.replaceChildren();
+function afficherTenueDans(root,result){
+  root.replaceChildren();
   const tenue=result?.tenue;
   if(!tenue){const p=document.createElement('p');p.textContent='Aucune tenue reçue.';root.append(p);return;}
   const title=document.createElement('h2'); title.textContent=tenue.nom||'Tenue';root.append(title);
@@ -108,6 +153,15 @@ function afficherTenue(result){
   const ids=document.createElement('p');ids.className='small';ids.textContent='Pièces sélectionnées : '+(tenue.pieces||[]).join(', ');root.append(ids);
   const photos=document.createElement('div');photos.className='items';root.append(photos);
   chargerPhotos(tenue.pieces||[],photos);
+}
+function afficherTenue(result){afficherTenueDans($('resultat'),result);}
+function differencePieces(d,e){
+  const a=new Set(d),b=new Set(e);
+  const reste=[...a].filter(id=>b.has(id));
+  const ajoute=[...b].filter(id=>!a.has(id));
+  const retire=[...a].filter(id=>!b.has(id));
+  const texte= 'Pièces communes : '+(reste.length?reste.join(', '):'aucune')+'. Pièces retirées : '+(retire.length?retire.join(', '):'aucune')+'. Pièces ajoutées : '+(ajoute.length?ajoute.join(', '):'aucune')+'.';
+  $('comparaisonStatut').textContent=texte+(ajoute.length<=1?' Différence limitée : vérifier si la nouvelle tenue est suffisamment différente.':' Les pièces sélectionnées ont sensiblement changé.');
 }
 async function chargerPhotos(ids,conteneur){
   if(!ids.length)return;
@@ -129,6 +183,12 @@ async function lancer(test){
     const {data:{session}}=await client.auth.getSession();
     if(!session)throw new Error('Session expirée. Reconnecte-toi.');
     const demande={...prompts[test],date:dateLocale(),lieu:'Sablet',meteo:null};
+    if(test==='E'){
+      if(!derniereTenueD || !Array.isArray(derniereTenueD.pieces)){
+        throw new Error('Lance d’abord le test D et conserve cette page ouverte.');
+      }
+      demande.previousPieceIds = [...derniereTenueD.pieces];
+    }
     const response=await fetch(SUPABASE_URL+'/functions/v1/assistant-style-labo',{
       method:'POST',
       headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+session.access_token},
@@ -139,12 +199,25 @@ async function lancer(test){
     if(!response.ok){afficherEtat('Erreur HTTP '+response.status+' — '+(body.code||'')+' : '+(body.error||'Impossible de générer la tenue.'));return;}
     afficherEtat('Test '+test+' réussi. Tenue proposée par '+(body.fournisseur||'le fournisseur configuré')+'.');
     afficherTenue(body);
+    if(test==='D'){
+      derniereTenueD=body.tenue;
+      $('comparaison').hidden=false;
+      afficherTenueDans($('comparaisonD'),body);
+      $('comparaisonE').textContent='En attente du test E.';
+      $('comparaisonStatut').textContent='Test D enregistré pour cette page. Tu peux maintenant lancer E.';
+    } else if(test==='E'){
+      $('comparaison').hidden=false;
+      afficherTenueDans($('comparaisonE'),body);
+      differencePieces(derniereTenueD.pieces,body.tenue.pieces);
+    }
   }catch(err){afficherEtat('Erreur : '+(err?.message||String(err)));$('diagnostic').textContent=String(err);}
   finally{boutons(false);}
 }
 $('boutonA').onclick=()=>lancer('A');
 $('boutonB').onclick=()=>lancer('B');
 $('boutonC').onclick=()=>lancer('C');
+$('boutonD').onclick=()=>lancer('D');
+$('boutonE').onclick=()=>lancer('E');
 verifierSession();
 </script>
 </body>
