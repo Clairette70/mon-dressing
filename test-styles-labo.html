@@ -3,475 +3,451 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mon Dressing — Tests stylistiques A à F</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mon Dressing — Laboratoire stylistique V2</title>
 <style>
-:root{--prune:#654158;--fond:#f8f5f3;--bord:#e6dfe3}
+:root{--wine:#654158;--bg:#f9f6f7;--ink:#302b35;--muted:#716674;--line:#e8dfe6}
 *{box-sizing:border-box}
-body{margin:0;background:var(--fond);color:#302b35;font:15px Arial,sans-serif}
-main{max-width:900px;margin:auto;padding:20px}
-h1,h2{font-family:Georgia,serif;font-weight:normal}
-.card{background:#fff;border:1px solid var(--bord);border-radius:14px;padding:20px;margin:15px 0}
-button{background:var(--prune);color:white;border:0;border-radius:9px;padding:12px 16px;font-weight:600;cursor:pointer}
-button:disabled{opacity:.5;cursor:wait}
-input{padding:12px;border:1px solid var(--bord);border-radius:8px;width:100%;font:inherit}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
-.items{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:12px}
-.item{border:1px solid var(--bord);border-radius:10px;padding:8px;text-align:center}
-.item img{width:100%;height:150px;object-fit:contain;display:block;background:#fff}
-.small{font-size:13px;color:#6d6370;line-height:1.5}
-.notice{padding:12px;background:#f3ebf1;border-radius:10px;margin:12px 0;white-space:pre-wrap;overflow-wrap:anywhere}
-pre{white-space:pre-wrap;word-break:break-word;background:#f8f5f3;padding:12px;border-radius:10px}
-label{display:block;margin-bottom:5px}
-.compare{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
-.compare .card{margin:0;padding:14px}
-.compare h3{font-family:Georgia,serif;font-weight:normal;font-size:20px;margin:8px 0}
-.compare .item img{height:110px}
-.compare .items{grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
-.muted{color:#6d6370;font-size:13px}
-.warning{background:#fff5e6;border:1px solid #ead9b3;padding:12px;border-radius:9px;margin:10px 0}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,Arial,sans-serif}
+main{max-width:1100px;margin:0 auto;padding:20px}
+h1,h2,h3{font-family:Georgia,serif;font-weight:normal;line-height:1.2}
+h1{margin:10px 0 5px;font-size:30px}
+h2{font-size:23px;margin:0 0 9px}
+h3{font-size:20px;margin:8px 0}
+p{margin:7px 0 10px}
+.muted,.small{color:var(--muted);font-size:13px}
+.panel{background:#fff;border:1px solid var(--line);border-radius:15px;padding:18px;margin:15px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.grid .panel{margin:0;display:flex;flex-direction:column;gap:6px}
+label{font-size:13px;color:var(--muted)}
+input{font:inherit;width:100%;padding:10px;border:1px solid #d6c9d2;border-radius:8px}
+button{font:600 14px system-ui,sans-serif;background:var(--wine);color:#fff;border:0;border-radius:9px;padding:11px 15px;cursor:pointer}
+button:disabled{opacity:.48;cursor:not-allowed}
+button.secondary{color:var(--wine);background:#f1e9ef;border:1px solid #d9c6d4}
+.grid .panel button{margin-top:auto;align-self:start}
+.notice{background:#f3edf2;border:1px solid #e7dbe4;border-radius:9px;padding:10px 12px;white-space:pre-wrap;overflow-wrap:anywhere}
+.warning{border:1px solid #e6cda3;background:#fff8eb;padding:10px;border-radius:9px;margin:10px 0}
+.success{border:1px solid #c5d9c9;background:#f2f7f2;padding:10px;border-radius:9px;margin:10px 0}
+.compare{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.look{border:1px solid var(--line);background:white;border-radius:13px;padding:14px;min-width:0}
+.look.choice{border:2px solid var(--wine)}
+.tag{display:inline-block;background:#ede5ec;color:var(--wine);font-weight:600;font-size:12px;padding:3px 9px;border-radius:10px}
+.photos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}
+.piece{border:1px solid var(--line);border-radius:9px;min-width:0;overflow:hidden;background:#fcfafb}
+.piece img{width:100%;height:147px;object-fit:contain;display:block;background:white}
+.piece .name{font-size:12px;line-height:1.35;padding:7px;min-height:43px;overflow-wrap:anywhere}
+.decisions{border-top:1px solid var(--line);padding-top:9px;margin-top:8px;font-size:13px}
+.decisions p{margin:6px 0}
+pre{max-height:450px;overflow:auto;white-space:pre-wrap;word-break:break-word;font-size:12px;background:#f8f5f7;padding:10px;border-radius:8px}
+details summary{cursor:pointer;font-weight:600;padding:8px 0}
+hr{border:0;border-top:1px solid var(--line);margin:18px 0}
+@media(max-width:650px){
+ main{padding:12px}
+ h1{font-size:26px}
+ .grid,.compare{grid-template-columns:1fr}
+ .photos{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
 </style>
 </head>
 <body>
 <main>
-<h1>Mon Dressing — Tests comparatifs</h1>
-<p class="small">Ce laboratoire utilise uniquement <strong>assistant-style-labo</strong> et ton dressing Supabase. Il ne modifie ni la V9 ni les tenues enregistrées. Chaque clic sur un test entraîne des appels API payants.</p>
+<h1>Mon Dressing — Laboratoire V2</h1>
+<p class="small">Même fichier de test, nouveau moteur. La V9 et les tenues enregistrées restent inchangées. Les tests météo utilisent des <strong>conditions fictives</strong>, pas les prévisions réelles.</p>
 
-<div class="card">
-<h2>Connexion à Mon Dressing</h2>
-<p id="connexion" class="notice">Vérification de la connexion…</p>
+<section class="panel">
+<h2>1. Connexion et vérification gratuite</h2>
+<p id="session-status" class="notice">Vérification de la connexion…</p>
 <div id="login" class="grid" hidden>
-<div>
-<label for="email">E-mail</label>
-<input id="email" type="email" autocomplete="username">
+ <div><label for="email">E-mail Mon Dressing</label><input id="email" type="email" autocomplete="username"></div>
+ <div><label for="password">Mot de passe</label><input id="password" type="password" autocomplete="current-password"></div>
+ <div><button id="login-button">Se connecter</button></div>
 </div>
-<div>
-<label for="password">Mot de passe</label>
-<input id="password" type="password" autocomplete="current-password">
-</div>
-<div><button id="connecter">Se connecter</button></div>
-</div>
-</div>
+<p><button id="diagnostic-button" class="secondary" disabled>Vérifier le laboratoire V2 (gratuit)</button></p>
+<p id="diagnostic-status" class="small">À vérifier avant de lancer un test payant.</p>
+</section>
 
+<section class="panel">
+<h2>2. Tests V2 — commence par un seul</h2>
+<p class="small">Chaque test payant appelle l'IA deux fois et peut générer des frais. La page présente la tenue choisie et les alternatives proposées dans le même appel.</p>
 <div class="grid">
-<section class="card">
-<h2>A. Élégance professionnelle</h2>
-<p class="small">Envie : Élégante · Programme : Travail</p>
-<p>Robe blazer noire à double boutonnage. Ajouter une sous-couche ou un sac seulement si cela améliore réellement la silhouette.</p>
-<button id="boutonA" disabled>Lancer le test A</button>
-</section>
-
-<section class="card">
-<h2>B. Rock chic</h2>
-<p class="small">Envie : Rock · Programme : Sortie en ville</p>
-<p>Robe blazer noire à double boutonnage. Rechercher une silhouette rock chic affirmée, sans excès.</p>
-<button id="boutonB" disabled>Lancer le test B</button>
-</section>
+ <article class="panel"><h3>F — Liberté stylistique</h3><p>Une tenue chic, féminine, avec une touche originale. Sans météo, sans vêtement imposé.</p><button class="run" data-test="F" disabled>Lancer F</button></article>
+ <article class="panel"><h3>G — 8 °C, pluie et vent</h3><p>Tester si l'IA prévoit une protection adaptée et conserve l'harmonie veste–sac–chaussures.</p><button class="run" data-test="G" disabled>Lancer G</button></article>
+ <article class="panel"><h3>H — 14 °C, temps sec</h3><p>Vérifier une superposition pertinente, sans manteau systématique.</p><button class="run" data-test="H" disabled>Lancer H</button></article>
+ <article class="panel"><h3>I — 20 °C, soleil</h3><p>Vérifier qu'elle n'ajoute pas de veste inutile et compose un look complet.</p><button class="run" data-test="I" disabled>Lancer I</button></article>
+ <article class="panel"><h3>J — Ignorer la météo</h3><p>Une météo froide et pluvieuse est transmise, mais la consigne est de l'ignorer.</p><button class="run" data-test="J" disabled>Lancer J</button></article>
 </div>
-
-<section class="card">
-<h2>C. Jean, haut et chic décalé</h2>
-<p class="small">Envie : Chic décontracté · Programme : Sortie en ville</p>
-<p>Construire une silhouette avec un jean, un haut et des chaussures. Priorité aux proportions, avec une touche rock ou rétro si elle est justifiée.</p>
-<button id="boutonC" disabled>Lancer le test C</button>
-</section>
-
-<div class="grid">
-<section class="card">
-<h2>D. Jupe et blouse — première tenue</h2>
-<p class="small">Envie : Féminine et moderne · Programme : Sortie en ville</p>
-<p>Créer une silhouette sophistiquée avec une jupe, une blouse et des chaussures.</p>
-<button id="boutonD" disabled>Lancer le test D</button>
-</section>
-
-<section class="card">
-<h2>E. Une vraie autre proposition</h2>
-<p class="small">Même envie et même occasion que le test D.</p>
-<p>Demander une association réellement différente, et pas simplement un autre accessoire.</p>
-<button id="boutonE" disabled>Lancer le test E après D</button>
-<p class="small">Lance D puis E sans actualiser la page.</p>
-</section>
-</div>
-
-<section class="card">
-<h2>F. Autonomie stylistique — demande libre</h2>
-<p class="small">Aucune pièce imposée. Aucun rappel des règles de morphologie, de couleurs ou d'accessoires. Météo non renseignée.</p>
-<p><strong>Demande :</strong> « Je sors en ville aujourd'hui. Propose-moi une tenue chic, féminine, avec une touche originale. »</p>
-<button id="boutonF" disabled>Lancer le test F</button>
-</section>
-
-<section class="card" id="comparaison" hidden>
-<h2>Comparaison des tests D et E</h2>
-<p id="comparaisonStatut" class="notice">Lance les deux tests pour comparer les choix.</p>
-<div class="compare">
-<div class="card">
-<h3>Test D — Première proposition</h3>
-<div id="comparaisonD" class="small">En attente du test D.</div>
-</div>
-<div class="card">
-<h3>Test E — Alternative</h3>
-<div id="comparaisonE" class="small">En attente du test E.</div>
-</div>
-</div>
-</section>
-
-<div class="card">
-<h2>Résultat du dernier test</h2>
-<p id="etat" class="notice">Aucun test lancé.</p>
-<div id="resultat"></div>
 <details>
-<summary>Afficher le diagnostic technique</summary>
-<pre id="diagnostic">—</pre>
+ <summary>Anciens scénarios A à E (optionnels et payants)</summary>
+ <p class="small">Tests historiques conservés pour comparer les deux versions. Les consignes très ciblées peuvent être incompatibles avec la diversité exigée par la V2.</p>
+ <div class="grid">
+  <article class="panel"><h3>A — Travail</h3><button class="run" data-test="A" disabled>Lancer A</button></article>
+  <article class="panel"><h3>B — Rock chic</h3><button class="run" data-test="B" disabled>Lancer B</button></article>
+  <article class="panel"><h3>C — Jean chic décalé</h3><button class="run" data-test="C" disabled>Lancer C</button></article>
+  <article class="panel"><h3>D — Jupe et blouse</h3><button class="run" data-test="D" disabled>Lancer D</button></article>
+  <article class="panel"><h3>E — Autre proposition D</h3><button class="run" data-test="E" disabled>Lancer E après D</button></article>
+ </div>
 </details>
-</div>
+</section>
+
+<section class="panel" id="result-section">
+<h2>3. Résultat</h2>
+<p id="result-status" class="notice">Aucun test lancé.</p>
+<div id="context-info"></div>
+<div id="looks" class="compare"></div>
+<div id="audit"></div>
+<details><summary>Détails techniques / erreur complète</summary><pre id="raw-response">—</pre></details>
+</section>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
-const SUPABASE_URL = 'https://vidypbmhsdjacjrxeqlr.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_Mt_Wtn1lLTPYOb5Sh2PH3A_5GdD3yRd';
-const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-const $ = id => document.getElementById(id);
+const SUPABASE_URL='https://vidypbmhsdjacjrxeqlr.supabase.co';
+const SUPABASE_KEY='sb_publishable_Mt_Wtn1lLTPYOb5Sh2PH3A_5GdD3yRd';
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const $=id=>document.getElementById(id);
 
 const prompts = {
   A: {
-    envie: 'Élégante',
-    programme: 'Travail',
-    ressenti: 'Normal',
-    confort: 'Équilibré',
+    envie: 'Élégante', programme: 'Travail', ressenti: 'Normal', confort: 'Équilibré',
     precisions: 'Compose une tenue élégante et moderne autour de ma robe blazer noire à double boutonnage, pour une journée de travail. Privilégie l’équilibre de la silhouette. N’ajoute une pièce sous la robe que si elle est réellement nécessaire, et un sac uniquement s’il améliore l’ensemble. Recherche la meilleure association parmi les vêtements disponibles, sans multiplier les accessoires.'
   },
   B: {
-    envie: 'Rock',
-    programme: 'Sortie en ville',
-    ressenti: 'Normal',
-    confort: 'Élégance prioritaire',
+    envie: 'Rock', programme: 'Sortie en ville', ressenti: 'Normal', confort: 'Élégance prioritaire',
     precisions: 'Compose une tenue autour de ma robe blazer noire à double boutonnage dans un esprit rock chic, féminin et moderne. Je recherche une silhouette affirmée, avec une touche audacieuse, mais sans tomber dans l’excès. Choisis librement les chaussures et accessoires les plus pertinents parmi mon dressing. L’équilibre des proportions et l’allure générale restent prioritaires.'
   },
   C: {
-    envie: 'Chic décontracté',
-    programme: 'Sortie en ville',
-    ressenti: 'Normal',
-    confort: 'Équilibré',
+    envie: 'Chic décontracté', programme: 'Sortie en ville', ressenti: 'Normal', confort: 'Équilibré',
     precisions: 'Crée une silhouette complète à partir d’un jean déjà présent dans mon dressing, d’un haut et de chaussures. Recherche un chic décalé, féminin et moderne, avec éventuellement une touche rock ou rétro, sans la forcer. Privilégie avant tout l’équilibre des volumes, des longueurs et des proportions pour une morphologie en A ; un haut structurant peut aider, sans devenir une règle absolue. Compare plusieurs associations possibles et retiens la meilleure. N’ajoute une veste ou un sac que si leur apport esthétique est réel. Aucune obligation de porter des talons ni de multiplier les accessoires. Donne un conseil concret, sans flatterie ni affirmation sur des photos que tu ne vois pas.'
   },
   D: {
-    envie: 'Féminine et moderne',
-    programme: 'Sortie en ville',
-    ressenti: 'Normal',
-    confort: 'Équilibré',
+    envie: 'Féminine et moderne', programme: 'Sortie en ville', ressenti: 'Normal', confort: 'Équilibré',
     precisions: 'Crée une tenue féminine et sophistiquée, réellement portable, en sélectionnant une jupe et une blouse de mon dressing, ainsi que des chaussures. Si aucune blouse adaptée n’est disponible, choisis un haut féminin approprié et signale ce compromis. Privilégie l’équilibre de la silhouette en A : mets en valeur la ligne des épaules sans surcharger les hanches. Compare plusieurs possibilités puis choisis la meilleure. Une veste ou un sac uniquement si cela améliore vraiment l’ensemble. Évite les associations prévisibles ou artificiellement chargées. Explique les choix de façon concise.'
   },
   E: {
-    envie: 'Féminine et moderne',
-    programme: 'Sortie en ville',
-    ressenti: 'Normal',
-    confort: 'Équilibré',
+    envie: 'Féminine et moderne', programme: 'Sortie en ville', ressenti: 'Normal', confort: 'Équilibré',
     precisions: 'Propose une deuxième interprétation de la tenue jupe et blouse pour une sortie en ville, aussi aboutie que la première, mais réellement différente. La silhouette et les proportions priment. Essaie de changer les deux pièces principales (jupe et blouse) plutôt que de simplement remplacer les chaussures, le sac ou la veste. N’ajoute pas de pièce qui n’améliore pas l’ensemble. Les pièces de la première tenue sont indiquées dans previousPieceIds et ne sont pas interdites individuellement, mais leur combinaison complète ne doit pas être répétée. Conseils précis et concis.'
   },
   F: {
-    envie: '',
-    programme: 'Sortie en ville',
-    ressenti: '',
-    confort: '',
+    envie: '', programme: 'Sortie en ville', ressenti: '', confort: '',
     precisions: 'Je sors en ville aujourd’hui. Propose-moi une tenue chic, féminine, avec une touche originale.'
   }
 };
 
-let derniereTenueD = null;
-
-function afficherEtat(texte) {
-  $('etat').textContent = texte;
-}
-
-function boutons(disabled) {
-  for (const id of [
-    'boutonA',
-    'boutonB',
-    'boutonC',
-    'boutonD',
-    'boutonF'
-  ]) {
-    $(id).disabled = disabled;
-  }
-
-  $('boutonE').disabled = disabled || !derniereTenueD;
-}
-
-async function verifierSession() {
-  const {data, error} = await client.auth.getSession();
-  const connecte = !error && Boolean(data.session);
-
-  $('connexion').textContent = connecte
-    ? 'Connectée à ton dressing.'
-    : 'Connecte-toi avec tes identifiants Mon Dressing.';
-
-  $('login').hidden = connecte;
-  boutons(!connecte);
-}
-
-$('connecter').onclick = async () => {
-  $('connecter').disabled = true;
-
-  const {error} = await client.auth.signInWithPassword({
-    email: $('email').value.trim(),
-    password: $('password').value
-  });
-
-  $('connecter').disabled = false;
-
-  if (error) {
-    $('connexion').textContent =
-      'Connexion refusée : ' + error.message;
-    return;
-  }
-
-  $('password').value = '';
-  await verifierSession();
+const reference={
+  G:{envie:'Chic féminin contemporain',programme:'Sortie en ville',ressenti:'Normal',confort:'Équilibré',precisions:'Je sors en ville. Propose une tenue féminine, harmonieuse et originale.'},
+  H:{envie:'Chic féminin contemporain',programme:'Sortie en ville',ressenti:'Normal',confort:'Équilibré',precisions:'Je sors en ville. Propose une tenue féminine, harmonieuse et originale.'},
+  I:{envie:'Chic féminin contemporain',programme:'Sortie en ville',ressenti:'Normal',confort:'Équilibré',precisions:'Je sors en ville. Propose une tenue féminine, harmonieuse et originale.'},
+  J:{envie:'Chic féminin contemporain',programme:'Sortie en ville',ressenti:'Normal',confort:'Équilibré',precisions:'Je sors en ville. Propose une tenue féminine, harmonieuse et originale. Ignore volontairement la météo.'}
 };
 
-function afficherTenueDans(root, result) {
-  root.replaceChildren();
+const meteoFictive={
+  G:{conditions:'Pluie, vent',temperature_min_c:5,temperature_max_c:8,ressenti_min_c:2,ressenti_max_c:6,pluie_probabilite_max_pct:85,precipitations_mm:6,vent_max_kmh:35,rafales_max_kmh:55},
+  H:{conditions:'Sec',temperature_min_c:9,temperature_max_c:14,ressenti_min_c:8,ressenti_max_c:13,pluie_probabilite_max_pct:5,precipitations_mm:0,vent_max_kmh:10,rafales_max_kmh:18},
+  I:{conditions:'Ensoleillé',temperature_min_c:16,temperature_max_c:20,ressenti_min_c:15,ressenti_max_c:21,pluie_probabilite_max_pct:0,precipitations_mm:0,vent_max_kmh:8,rafales_max_kmh:15}
+};
+meteoFictive.J={...meteoFictive.G};
 
-  const tenue = result?.tenue;
+let connected=false,busy=false,preflight=false,latestD=null;
 
-  if (!tenue) {
-    const p = document.createElement('p');
-    p.textContent = 'Aucune tenue reçue.';
-    root.append(p);
-    return;
-  }
-
-  const title = document.createElement('h2');
-  title.textContent = tenue.nom || 'Tenue';
-  root.append(title);
-
-  const occasion = document.createElement('p');
-  occasion.textContent = tenue.occasion || '';
-  root.append(occasion);
-
-  const conseil = document.createElement('p');
-  conseil.textContent = tenue.conseils || '';
-  root.append(conseil);
-
-  const ids = document.createElement('p');
-  ids.className = 'small';
-  ids.textContent =
-    'Pièces sélectionnées : ' + (tenue.pieces || []).join(', ');
-  root.append(ids);
-
-  const photos = document.createElement('div');
-  photos.className = 'items';
-  root.append(photos);
-
-  chargerPhotos(tenue.pieces || [], photos);
+function localDate(){
+ const d=new Date();
+ return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
 }
 
-function afficherTenue(result) {
-  afficherTenueDans($('resultat'), result);
+function updateButtons(){
+ $('diagnostic-button').disabled=!connected||busy;
+ document.querySelectorAll('.run').forEach(b=>b.disabled=!connected||busy||!preflight||(b.dataset.test==='E'&&!latestD));
 }
 
-function differencePieces(d, e) {
-  const a = new Set(d);
-  const b = new Set(e);
-
-  const reste = [...a].filter(id => b.has(id));
-  const ajoute = [...b].filter(id => !a.has(id));
-  const retire = [...a].filter(id => !b.has(id));
-
-  const texte =
-    'Pièces communes : ' +
-    (reste.length ? reste.join(', ') : 'aucune') +
-    '. Pièces retirées : ' +
-    (retire.length ? retire.join(', ') : 'aucune') +
-    '. Pièces ajoutées : ' +
-    (ajoute.length ? ajoute.join(', ') : 'aucune') + '.';
-
-  $('comparaisonStatut').textContent =
-    texte +
-    (ajoute.length <= 1
-      ? ' Différence limitée : vérifier si la nouvelle tenue est suffisamment différente.'
-      : ' Les pièces sélectionnées ont sensiblement changé.');
+async function checkSession(){
+ const {data,error}=await db.auth.getSession();
+ connected=!error&&!!data?.session;
+ $('session-status').textContent=connected?'Connectée au dressing.':'Connecte-toi avec tes identifiants Mon Dressing.';
+ $('login').hidden=connected;
+ updateButtons();
 }
 
-async function chargerPhotos(ids, conteneur) {
-  if (!ids.length) return;
+$('login-button').onclick=async()=>{
+ $('login-button').disabled=true;
+ try{
+   const {error}=await db.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});
+   if(error)throw error;
+   $('password').value='';
+   await checkSession();
+ }
+ catch(e){
+   $('session-status').textContent='Connexion impossible : '+e.message;
+ }
+ finally{
+   $('login-button').disabled=false;
+ }
+};
 
-  const {data, error} = await client
-    .from('vêtements')
-    .select('id,nom,photo_url')
-    .in('id', ids);
-
-  if (error) {
-    const p = document.createElement('p');
-    p.textContent =
-      'Photos indisponibles : ' + error.message;
-    conteneur.append(p);
-    return;
-  }
-
-  const byId = new Map(
-    (data || []).map(x => [x.id, x])
-  );
-
-  for (const id of ids) {
-    const piece = byId.get(id);
-
-    const box = document.createElement('div');
-    box.className = 'item';
-
-    if (
-      piece?.photo_url &&
-      /^(https:\/\/|data:image\/)/.test(piece.photo_url)
-    ) {
-      const img = document.createElement('img');
-      img.src = piece.photo_url;
-      img.alt = piece.nom || 'Vêtement';
-      box.append(img);
-    }
-
-    const name = document.createElement('div');
-    name.textContent = piece?.nom || 'Pièce ' + id;
-    box.append(name);
-
-    conteneur.append(box);
-  }
+async function invoke(mode,demande){
+ const {data:{session},error}=await db.auth.getSession();
+ if(error||!session)throw new Error('Session expirée. Reconnecte-toi.');
+ const response=await fetch(SUPABASE_URL+'/functions/v1/assistant-style-labo',{
+   method:'POST',
+   headers:{
+     'Content-Type':'application/json',
+     'apikey':SUPABASE_KEY,
+     'Authorization':'Bearer '+session.access_token
+   },
+   body:JSON.stringify(mode==='diagnostic'?{mode}:{mode,demande})
+ });
+ const body=await response.json().catch(()=>({error:'Réponse Supabase illisible.'}));
+ return {status:response.status,ok:response.ok,body};
 }
 
-function dateLocale() {
-  const d = new Date();
+$('diagnostic-button').onclick=async()=>{
+ busy=true;
+ preflight=false;
+ updateButtons();
+ $('diagnostic-status').textContent='Vérification en cours…';
+ try{
+   const r=await invoke('diagnostic');
+   $('raw-response').textContent=JSON.stringify({http_status:r.status,...r.body},null,2);
+   if(!r.ok||r.body.status!=='pret'){
+     throw new Error('HTTP '+r.status+' — '+(r.body.error||'Le diagnostic a échoué.'));
+   }
+   if(r.body.fournisseur_configure!==true){
+     throw new Error('Le fournisseur IA du laboratoire n’est pas configuré.');
+   }
+   preflight=true;
+   $('diagnostic-status').textContent='Diagnostic réussi : '+r.body.nombre_pieces+' pièces indexées. Aucun appel IA payant effectué.';
+ }
+ catch(e){
+   $('diagnostic-status').textContent='Échec du diagnostic : '+e.message;
+ }
+ finally{
+   busy=false;
+   updateButtons();
+ }
+};
 
-  return [
-    d.getFullYear(),
-    String(d.getMonth() + 1).padStart(2, '0'),
-    String(d.getDate()).padStart(2, '0')
-  ].join('-');
+function textEl(tag,content,cls){
+ const el=document.createElement(tag);
+ el.textContent=content??'';
+ if(cls)el.className=cls;
+ return el;
 }
 
-async function lancer(test) {
-  boutons(true);
-  afficherEtat('Test ' + test + ' en cours…');
-
-  $('resultat').replaceChildren();
-  $('diagnostic').textContent = '—';
-
-  try {
-    const {data: {session}} = await client.auth.getSession();
-
-    if (!session) {
-      throw new Error('Session expirée. Reconnecte-toi.');
-    }
-
-    const demande = {
-      ...prompts[test],
-      date: dateLocale(),
-      lieu: 'Sablet',
-      meteo: null
-    };
-
-    if (test === 'E') {
-      if (
-        !derniereTenueD ||
-        !Array.isArray(derniereTenueD.pieces)
-      ) {
-        throw new Error(
-          'Lance d’abord le test D et conserve cette page ouverte.'
-        );
-      }
-
-      demande.previousPieceIds = [...derniereTenueD.pieces];
-    }
-
-    const response = await fetch(
-      SUPABASE_URL + '/functions/v1/assistant-style-labo',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_KEY,
-          'Authorization': 'Bearer ' + session.access_token
-        },
-        body: JSON.stringify({
-          mode: 'generer',
-          demande
-        })
-      }
-    );
-
-    const body = await response.json().catch(() => ({
-      error: 'Réponse illisible de Supabase.'
-    }));
-
-    $('diagnostic').textContent = JSON.stringify(
-      {http_status: response.status, ...body},
-      null,
-      2
-    );
-
-    if (!response.ok) {
-      afficherEtat(
-        'Erreur HTTP ' +
-        response.status +
-        ' — ' +
-        (body.code || '') +
-        ' : ' +
-        (body.error || 'Impossible de générer la tenue.')
-      );
-      return;
-    }
-
-    afficherEtat(
-      'Test ' +
-      test +
-      ' réussi. Tenue proposée par ' +
-      (body.fournisseur || 'le fournisseur configuré') +
-      '.'
-    );
-
-    afficherTenue(body);
-
-    if (test === 'D') {
-      derniereTenueD = body.tenue;
-      $('comparaison').hidden = false;
-
-      afficherTenueDans($('comparaisonD'), body);
-
-      $('comparaisonE').textContent =
-        'En attente du test E.';
-
-      $('comparaisonStatut').textContent =
-        'Test D enregistré pour cette page. Tu peux maintenant lancer E.';
-
-    } else if (test === 'E') {
-      $('comparaison').hidden = false;
-
-      afficherTenueDans($('comparaisonE'), body);
-
-      differencePieces(
-        derniereTenueD.pieces,
-        body.tenue.pieces
-      );
-    }
-
-  } catch (err) {
-    afficherEtat(
-      'Erreur : ' + (err?.message || String(err))
-    );
-    $('diagnostic').textContent = String(err);
-
-  } finally {
-    boutons(false);
-  }
+function cardPhoto(piece,id){
+ const div=document.createElement('div');
+ div.className='piece';
+ if(piece?.photo_url&&/^(https:\/\/|data:image\/)/.test(piece.photo_url)){
+   const img=document.createElement('img');
+   img.loading='lazy';
+   img.src=piece.photo_url;
+   img.alt=piece.nom||'Pièce du dressing';
+   div.append(img);
+ }else{
+   div.append(textEl('p','Photo indisponible','small'));
+ }
+ div.append(textEl('div',piece?.nom||'Pièce '+id,'name'));
+ return div;
 }
 
-$('boutonA').onclick = () => lancer('A');
-$('boutonB').onclick = () => lancer('B');
-$('boutonC').onclick = () => lancer('C');
-$('boutonD').onclick = () => lancer('D');
-$('boutonE').onclick = () => lancer('E');
-$('boutonF').onclick = () => lancer('F');
+function optionsDansOrdre(body){
+ const diag=body.diagnostic?.comparison||{};
+ const alts=Array.isArray(body.alternatives)?body.alternatives:[];
+ const selected=Number.isInteger(diag.selectedIndex)?diag.selectedIndex:0;
+ const n=alts.length+1;
+ const options=[];
+ let a=0;
 
-verifierSession();
+ for(let i=0;i<n;i++){
+   const opt=i===selected?{tenue:body.tenue}:alts[a++];
+   if(!opt?.tenue)continue;
+   options.push({
+     ...opt,
+     originalIndex:i,
+     selected:i===selected,
+     score:diag.subjectiveScores?.[i]
+   });
+ }
+ return options.sort((a,b)=>Number(b.selected)-Number(a.selected)||a.originalIndex-b.originalIndex);
+}
+
+async function photosEtInventaire(body,options){
+ const ids=[...new Set(options.flatMap(o=>o.tenue.pieces||[]))];
+ const {data,error}=await db.from('vêtements')
+   .select('id,nom,categorie,couleur,description,photo_url')
+   .order('id',{ascending:true})
+   .limit(501);
+
+ if(error)throw new Error('Impossible de lire les photos : '+error.message);
+
+ const map=new Map((data||[]).map(p=>[p.id,p]));
+ return {
+   map,
+   watch:(data||[]).filter(p=>/z[eé]br|vert sapin|bottine.*vert|boot.*vert|vert.*bottin/i.test([p.nom,p.couleur,p.description].join(' ')))
+ };
+}
+
+function afficherLook(root,opt,inventaire){
+ const card=document.createElement('article');
+ card.className='look'+(opt.selected?' choice':'');
+
+ card.append(textEl('span',opt.selected?'Tenue choisie par GPT':'Alternative '+(opt.originalIndex+1),'tag'));
+ card.append(textEl('h3',opt.tenue.nom||'Tenue sans nom'));
+
+ if(Number.isFinite(opt.score)){
+   card.append(textEl('p','Auto-note GPT : '+opt.score+'/100 (subjective)','small'));
+ }
+
+ card.append(textEl('p',opt.tenue.conseils||''));
+
+ const ids=opt.tenue.pieces||[];
+ const photos=document.createElement('div');
+ photos.className='photos';
+ ids.forEach(id=>photos.append(cardPhoto(inventaire.map.get(id),id)));
+ card.append(photos);
+
+ card.append(textEl('p','Pièces : '+ids.join(', '),'small'));
+
+ if(opt.veste||opt.sac){
+   const details=document.createElement('div');
+   details.className='decisions';
+
+   if(opt.veste){
+     details.append(textEl('p','Veste / manteau : '+opt.veste.decision+' — '+opt.veste.raison));
+   }
+   if(opt.sac){
+     details.append(textEl('p','Sac : '+opt.sac.decision+' — '+opt.sac.raison));
+   }
+   card.append(details);
+ }else{
+   card.append(textEl('p','Motifs détaillés veste/sac : non renvoyés pour la tenue gagnante dans cette V2.','small'));
+ }
+
+ root.append(card);
+}
+
+function afficherAudit(body,inventaire){
+ const d=body.diagnostic||{};
+ const div=$('audit');
+ div.replaceChildren();
+
+ const p=d.plan;
+ if(p){
+   const meteo=p.utiliseMeteo?'Météo prise en compte':'Météo absente / ignorée';
+   $('context-info').replaceChildren(
+     textEl('p',meteo+' · Couche extérieure : '+p.exterieur+' · Sac : '+p.sac,'notice')
+   );
+ }
+
+ const audit=document.createElement('details');
+ audit.append(textEl('summary','Contrôle des pièces envisagées (zèbre et bottines vertes)'));
+
+ if(!inventaire.watch.length){
+   audit.append(textEl('p','Aucune fiche correspondante détectée dans les noms, couleurs ou descriptions du catalogue.','small'));
+ }
+
+ for(const p of inventaire.watch){
+   const inDetail=(d.candidateIds||[]).includes(p.id);
+   const nominated=(d.nominatedIds||[]).includes(p.id);
+   audit.append(textEl(
+     'p',
+     '#'+p.id+' '+p.nom+' — '+(inDetail?'Fiche détaillée transmise':'Index seul')+(nominated?' ; nommée par GPT en présélection':''),
+     'small'
+   ));
+ }
+
+ audit.append(textEl('p','Être dans les candidats ne prouve pas qu’une association précise a été comparée.','small'));
+ div.append(audit);
+
+ const warns=[...(body.validation?.warnings||[])];
+ if(warns.length){
+   const box=document.createElement('div');
+   box.className='warning';
+   box.append(textEl('strong','Avertissements du moteur'));
+   warns.forEach(w=>box.append(textEl('p',w,'small')));
+   div.append(box);
+ }
+
+ const details=document.createElement('details');
+ details.append(textEl('summary','Répartition des fiches détaillées'));
+
+ const parts=['haut','bas','robe','chaussures','veste','manteau','sac'].map(role=>{
+   const v=d.roleCoverage?.[role];
+   return v?role+' : '+v.selected+'/'+v.total:'';
+ }).filter(Boolean);
+
+ details.append(textEl('p',parts.join(' · '),'small'));
+ div.append(details);
+}
+
+function construireDemande(test){
+ const base=test in prompts?{...prompts[test]}:{...reference[test]};
+
+ if(test==='E'){
+   if(!latestD)throw new Error('Lance D avant E, sans fermer ni actualiser la page.');
+   base.previousPieceIds=[...latestD];
+ }
+
+ const demande={...base,date:localDate(),lieu:'Sablet',meteo:null};
+
+ if(meteoFictive[test]){
+   demande.meteo={
+     ...meteoFictive[test],
+     source:'Simulation de test',
+     date:localDate(),
+     lieu:'Sablet'
+   };
+ }
+
+ if(test==='J')demande.ignorer_meteo=true;
+
+ return demande;
+}
+
+async function lancer(test){
+ busy=true;
+ updateButtons();
+
+ $('looks').replaceChildren();
+ $('audit').replaceChildren();
+ $('context-info').replaceChildren();
+ $('result-status').textContent='Test '+test+' lancé. Appels IA payants en cours…';
+ $('raw-response').textContent='—';
+ $('result-section').scrollIntoView({behavior:'smooth',block:'start'});
+
+ try{
+   const demande=construireDemande(test);
+   const r=await invoke('generer',demande);
+
+   $('raw-response').textContent=JSON.stringify({http_status:r.status,...r.body},null,2);
+
+   if(!r.ok){
+     throw new Error('HTTP '+r.status+' — '+(r.body.code||'')+' '+(r.body.error||'Génération impossible'));
+   }
+
+   if(!r.body.tenue?.pieces){
+     throw new Error('La réponse ne contient pas de tenue exploitable.');
+   }
+
+   const options=optionsDansOrdre(r.body);
+   const inventory=await photosEtInventaire(r.body,options);
+
+   options.forEach(opt=>afficherLook($('looks'),opt,inventory));
+   afficherAudit(r.body,inventory);
+
+   $('result-status').textContent='Test '+test+' réussi : '+options.length+' silhouette(s). Évalue surtout la tenue choisie et l’intégration veste/sac.';
+
+   if(test==='D')latestD=[...r.body.tenue.pieces];
+ }
+ catch(e){
+   $('result-status').textContent='Erreur : '+e.message+' — ouvre « Détails techniques » et envoie-moi une capture.';
+ }
+ finally{
+   busy=false;
+   updateButtons();
+ }
+}
+
+document.querySelectorAll('.run').forEach(b=>b.onclick=()=>lancer(b.dataset.test));
+checkSession();
 </script>
 </body>
 </html>
