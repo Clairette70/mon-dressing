@@ -1,29 +1,23 @@
-
 <!doctype html>
 <html lang="fr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Mon Dressing — Laboratoire V2 · Affichage robuste</title>
+<title>Mon Dressing — Laboratoire V2.2 · Choix vérifiable</title>
 <style>
 :root{--wine:#654158;--bg:#f9f6f7;--ink:#302b35;--muted:#716674;--line:#e8dfe6}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,Arial,sans-serif}
 main{max-width:1100px;margin:0 auto;padding:20px}
 h1,h2,h3{font-family:Georgia,serif;font-weight:normal;line-height:1.2}
-h1{margin:10px 0 5px;font-size:30px}
-h2{font-size:23px;margin:0 0 9px}
-h3{font-size:20px;margin:8px 0}
-p{margin:7px 0 10px}
-.muted,.small{color:var(--muted);font-size:13px}
+h1{margin:10px 0 5px;font-size:30px}h2{font-size:23px;margin:0 0 9px}h3{font-size:20px;margin:8px 0}
+p{margin:7px 0 10px}.muted,.small{color:var(--muted);font-size:13px}
 .panel{background:#fff;border:1px solid var(--line);border-radius:15px;padding:18px;margin:15px 0}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
 .grid .panel{margin:0;display:flex;flex-direction:column;gap:6px}
-label{font-size:13px;color:var(--muted)}
-input{font:inherit;width:100%;padding:10px;border:1px solid #d6c9d2;border-radius:8px}
+label{font-size:13px;color:var(--muted)}input{font:inherit;width:100%;padding:10px;border:1px solid #d6c9d2;border-radius:8px}
 button{font:600 14px system-ui,sans-serif;background:var(--wine);color:#fff;border:0;border-radius:9px;padding:11px 15px;cursor:pointer}
-button:disabled{opacity:.48;cursor:not-allowed}
-button.secondary{color:var(--wine);background:#f1e9ef;border:1px solid #d9c6d4}
+button:disabled{opacity:.48;cursor:not-allowed}button.secondary{color:var(--wine);background:#f1e9ef;border:1px solid #d9c6d4}
 .grid .panel button{margin-top:auto;align-self:start}
 .notice{background:#f3edf2;border:1px solid #e7dbe4;border-radius:9px;padding:10px 12px;white-space:pre-wrap;overflow-wrap:anywhere}
 .warning{border:1px solid #e6cda3;background:#fff8eb;padding:10px;border-radius:9px;margin:10px 0}
@@ -41,514 +35,310 @@ button.secondary{color:var(--wine);background:#f1e9ef;border:1px solid #d9c6d4}
 pre{max-height:450px;overflow:auto;white-space:pre-wrap;word-break:break-word;font-size:12px;background:#f8f5f7;padding:10px;border-radius:8px}
 details summary{cursor:pointer;font-weight:600;padding:8px 0}
 hr{border:0;border-top:1px solid var(--line);margin:18px 0}
-@media(max-width:650px){
-main{padding:12px}
-h1{font-size:26px}
-.grid,.compare{grid-template-columns:1fr}
-.photos{grid-template-columns:repeat(2,minmax(0,1fr))}
-}
+@media(max-width:650px){main{padding:12px}h1{font-size:26px}.grid,.compare{grid-template-columns:1fr}.photos{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 </head>
 <body>
 <main>
 <h1>Mon Dressing — Laboratoire V2</h1>
 <p class="small">Même fichier de test, nouveau moteur. La V9 et les tenues enregistrées restent inchangées. Les tests météo utilisent des <strong>conditions fictives</strong>, pas les prévisions réelles.</p>
-
 <section class="panel">
 <h2>1. Connexion et vérification gratuite</h2>
 <p id="session-status" class="notice">Vérification de la connexion…</p>
 <div id="login" class="grid" hidden>
-<div>
-<label for="email">E-mail Mon Dressing</label>
-<input id="email" type="email" autocomplete="username">
-</div>
-<div>
-<label for="password">Mot de passe</label>
-<input id="password" type="password" autocomplete="current-password">
-</div>
-<div><button id="login-button">Se connecter</button></div>
+ <div><label for="email">E-mail Mon Dressing</label><input id="email" type="email" autocomplete="username"></div>
+ <div><label for="password">Mot de passe</label><input id="password" type="password" autocomplete="current-password"></div>
+ <div><button id="login-button">Se connecter</button></div>
 </div>
 <p><button id="diagnostic-button" class="secondary" disabled>Vérifier le laboratoire V2 (gratuit)</button></p>
 <p id="diagnostic-status" class="small">À vérifier avant de lancer un test payant.</p>
+<div id="diagnostic-categories"></div>
 </section>
-
 <section class="panel">
 <h2>2. Tests V2 — commence par un seul</h2>
 <p class="small">Chaque test payant appelle l'IA deux fois et peut générer des frais. La page présente la tenue choisie et les alternatives proposées dans le même appel.</p>
 <div class="grid">
-<article class="panel">
-<h3>F — Liberté stylistique</h3>
-<p>Une tenue chic, féminine, avec une touche originale. Sans météo, sans vêtement imposé.</p>
-<button class="run" data-test="F" disabled>Lancer F</button>
-</article>
-<article class="panel">
-<h3>G — 8 °C, pluie et vent</h3>
-<p>Tester si l'IA prévoit une protection adaptée et conserve l'harmonie veste–sac–chaussures.</p>
-<button class="run" data-test="G" disabled>Lancer G</button>
-</article>
-<article class="panel">
-<h3>H — 14 °C, temps sec</h3>
-<p>Vérifier une superposition pertinente, sans manteau systématique.</p>
-<button class="run" data-test="H" disabled>Lancer H</button>
-</article>
-<article class="panel">
-<h3>I — 20 °C, soleil</h3>
-<p>Vérifier qu'elle n'ajoute pas de veste inutile et compose un look complet.</p>
-<button class="run" data-test="I" disabled>Lancer I</button>
-</article>
-<article class="panel">
-<h3>J — Ignorer la météo</h3>
-<p>Une météo froide et pluvieuse est transmise, mais la consigne est de l'ignorer.</p>
-<button class="run" data-test="J" disabled>Lancer J</button>
-</article>
+ <article class="panel"><h3>F — Liberté stylistique</h3><p>Une tenue chic, féminine, avec une touche originale. Sans météo, sans vêtement imposé.</p><button class="run" data-test="F" disabled>Lancer F</button></article>
+ <article class="panel"><h3>G — 8 °C, pluie et vent</h3><p>Tester si l'IA prévoit une protection adaptée et conserve l'harmonie veste–sac–chaussures.</p><button class="run" data-test="G" disabled>Lancer G</button></article>
+ <article class="panel"><h3>H — 14 °C, temps sec</h3><p>Vérifier une superposition pertinente, sans manteau systématique.</p><button class="run" data-test="H" disabled>Lancer H</button></article>
+ <article class="panel"><h3>I — 20 °C, soleil</h3><p>Vérifier qu'elle n'ajoute pas de veste inutile et compose un look complet.</p><button class="run" data-test="I" disabled>Lancer I</button></article>
+ <article class="panel"><h3>J — Ignorer la météo</h3><p>Une météo froide et pluvieuse est transmise, mais la consigne est de l'ignorer.</p><button class="run" data-test="J" disabled>Lancer J</button></article>
 </div>
 <details>
-<summary>Anciens scénarios A à E (optionnels et payants)</summary>
-<p class="small">Tests historiques conservés pour comparer les deux versions.</p>
-<div class="grid">
-<article class="panel"><h3>A — Travail</h3><button class="run" data-test="A" disabled>Lancer A</button></article>
-<article class="panel"><h3>B — Rock chic</h3><button class="run" data-test="B" disabled>Lancer B</button></article>
-<article class="panel"><h3>C — Jean chic décalé</h3><button class="run" data-test="C" disabled>Lancer C</button></article>
-<article class="panel"><h3>D — Jupe et blouse</h3><button class="run" data-test="D" disabled>Lancer D</button></article>
-<article class="panel"><h3>E — Autre proposition D</h3><button class="run" data-test="E" disabled>Lancer E après D</button></article>
-</div>
+ <summary>Anciens scénarios A à E (optionnels et payants)</summary>
+ <p class="small">Tests historiques conservés pour comparer les deux versions. Les consignes très ciblées peuvent être incompatibles avec la diversité exigée par la V2.</p>
+ <div class="grid">
+  <article class="panel"><h3>A — Travail</h3><button class="run" data-test="A" disabled>Lancer A</button></article>
+  <article class="panel"><h3>B — Rock chic</h3><button class="run" data-test="B" disabled>Lancer B</button></article>
+  <article class="panel"><h3>C — Jean chic décalé</h3><button class="run" data-test="C" disabled>Lancer C</button></article>
+  <article class="panel"><h3>D — Jupe et blouse</h3><button class="run" data-test="D" disabled>Lancer D</button></article>
+  <article class="panel"><h3>E — Autre proposition D</h3><button class="run" data-test="E" disabled>Lancer E après D</button></article>
+ </div>
 </details>
 </section>
-
 <section class="panel" id="result-section">
 <h2>3. Résultat</h2>
 <p id="result-status" class="notice">Aucun test lancé.</p>
 <details id="import-ancien">
-<summary>Réafficher un résultat JSON déjà obtenu — sans appel payant</summary>
-<p class="small">Colle ci-dessous le texte JSON complet du précédent test. Cela ne lance pas GPT.</p>
-<textarea id="result-json-input" rows="5" style="width:100%;max-width:100%;padding:10px;border:1px solid #d6c9d2;border-radius:8px;font:12px/1.4 monospace" placeholder='{ "http_status": 200, "tenue": { ... }, "alternatives": [ ... ] }'></textarea>
-<p>
-<button id="import-result" class="secondary">Afficher ce résultat (gratuit)</button>
-<button id="restore-result" class="secondary">Réafficher le dernier résultat de cet onglet</button>
-</p>
-<p id="import-feedback" class="small"></p>
+  <summary>Réafficher un résultat JSON déjà obtenu — sans appel payant</summary>
+  <p class="small">Copie le texte JSON complet affiché dans « Détails techniques » lors du précédent test et colle-le ci-dessous. Cela ne lance pas GPT.</p>
+  <textarea id="result-json-input" rows="5" style="width:100%;max-width:100%;padding:10px;border:1px solid #d6c9d2;border-radius:8px;font:12px/1.4 monospace" placeholder='{ "http_status": 200, "tenue": { ... }, "alternatives": [ ... ] }'></textarea>
+  <p><button id="import-result" class="secondary">Afficher ce résultat (gratuit)</button> <button id="restore-result" class="secondary">Réafficher le dernier résultat de cet onglet</button></p>
+  <p id="import-feedback" class="small"></p>
 </details>
 <div id="context-info"></div>
 <div id="looks" class="compare"></div>
 <div id="audit"></div>
-<details>
-<summary>Détails techniques / erreur complète</summary>
-<pre id="raw-response">—</pre>
-</details>
+<details><summary>Détails techniques / erreur complète</summary><pre id="raw-response">—</pre></details>
 </section>
 </main>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 const SUPABASE_URL='https://vidypbmhsdjacjrxeqlr.supabase.co';
 const SUPABASE_KEY='sb_publishable_Mt_Wtn1lLTPYOb5Sh2PH3A_5GdD3yRd';
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const $=id=>document.getElementById(id);
-
-const prompts={
-A:{
-envie:'Élégante',programme:'Travail',ressenti:'Normal',confort:'Équilibré',
-precisions:'Compose une tenue élégante et moderne autour de ma robe blazer noire à double boutonnage, pour une journée de travail. Privilégie l’équilibre de la silhouette. N’ajoute une pièce sous la robe que si elle est réellement nécessaire, et un sac uniquement s’il améliore l’ensemble.'
-},
-B:{
-envie:'Rock',programme:'Sortie en ville',ressenti:'Normal',confort:'Élégance prioritaire',
-precisions:'Compose une tenue autour de ma robe blazer noire à double boutonnage dans un esprit rock chic, féminin et moderne. Recherche une silhouette affirmée, mais sans excès. Choisis les chaussures et accessoires les plus pertinents.'
-},
-C:{
-envie:'Chic décontracté',programme:'Sortie en ville',ressenti:'Normal',confort:'Équilibré',
-precisions:'Crée une silhouette complète avec un jean de mon dressing, un haut et des chaussures. Recherche un chic décalé, féminin et moderne. Privilégie les proportions et une morphologie en A. N’ajoute une veste ou un sac que si leur apport esthétique est réel.'
-},
-D:{
-envie:'Féminine et moderne',programme:'Sortie en ville',ressenti:'Normal',confort:'Équilibré',
-precisions:'Crée une tenue féminine et sophistiquée avec une jupe, une blouse et des chaussures. Compare les possibilités, privilégie l’équilibre des proportions. Une veste ou un sac uniquement si cela améliore l’ensemble.'
-},
-E:{
-envie:'Féminine et moderne',programme:'Sortie en ville',ressenti:'Normal',confort:'Équilibré',
-precisions:'Propose une deuxième interprétation de la tenue jupe et blouse, réellement différente de la précédente. Essaie de changer les deux pièces principales. Les pièces précédentes figurent dans previousPieceIds.'
-},
-F:{
-envie:'',programme:'Sortie en ville',ressenti:'',confort:'',
-precisions:'Je sors en ville aujourd’hui. Propose-moi une tenue chic, féminine, avec une touche originale.'
-}
+const prompts = {
+  A: {
+    envie: 'Élégante', programme: 'Travail', ressenti: 'Normal', confort: 'Équilibré',
+    precisions: 'Compose une tenue élégante et moderne autour de ma robe blazer noire à double boutonnage, pour une journée de travail. Privilégie l’équilibre de la silhouette. N’ajoute une pièce sous la robe que si elle est réellement nécessaire, et un sac uniquement s’il améliore l’ensemble. Recherche la meilleure association parmi les vêtements disponibles, sans multiplier les accessoires.'
+  },
+  B: {
+    envie: 'Rock', programme: 'Sortie en ville', ressenti: 'Normal', confort: 'Élégance prioritaire',
+    precisions: 'Compose une tenue autour de ma robe blazer noire à double boutonnage dans un esprit rock chic, féminin et moderne. Je recherche une silhouette affirmée, avec une touche audacieuse, mais sans tomber dans l’excès. Choisis librement les chaussures et accessoires les plus pertinents parmi mon dressing. L’équilibre des proportions et l’allure générale restent prioritaires.'
+  },
+  C: {
+    envie: 'Chic décontracté', programme: 'Sortie en ville', ressenti: 'Normal', confort: 'Équilibré',
+    precisions: 'Crée une silhouette complète à partir d’un jean déjà présent dans mon dressing, d’un haut et de chaussures. Recherche un chic décalé, féminin et moderne, avec éventuellement une touche rock ou rétro, sans la forcer. Privilégie avant tout l’équilibre des volumes, des longueurs et des proportions pour une morphologie en A ; un haut structurant peut aider, sans devenir une règle absolue. Compare plusieurs associations possibles et retiens la meilleure. N’ajoute une veste ou un sac que si leur apport esthétique est réel. Aucune obligation de porter des talons ni de multiplier les accessoires. Donne un conseil concret, sans flatterie ni affirmation sur des photos que tu ne vois pas.'
+  },
+  D: {
+    envie: 'Féminine et moderne', programme: 'Sortie en ville', ressenti: 'Normal', confort: 'Équilibré',
+    precisions: 'Crée une tenue féminine et sophistiquée, réellement portable, en sélectionnant une jupe et une blouse de mon dressing, ainsi que des chaussures. Si aucune blouse adaptée n’est disponible, choisis un haut féminin approprié et signale ce compromis. Privilégie l’équilibre de la silhouette en A : mets en valeur la ligne des épaules sans surcharger les hanches. Compare plusieurs possibilités puis choisis la meilleure. Une veste ou un sac uniquement si cela améliore vraiment l’ensemble. Évite les associations prévisibles ou artificiellement chargées. Explique les choix de façon concise.'
+  },
+  E: {
+    envie: 'Féminine et moderne', programme: 'Sortie en ville', ressenti: 'Normal', confort: 'Équilibré',
+    precisions: 'Propose une deuxième interprétation de la tenue jupe et blouse pour une sortie en ville, aussi aboutie que la première, mais réellement différente. La silhouette et les proportions priment. Essaie de changer les deux pièces principales (jupe et blouse) plutôt que de simplement remplacer les chaussures, le sac ou la veste. N’ajoute pas de pièce qui n’améliore pas l’ensemble. Les pièces de la première tenue sont indiquées dans previousPieceIds et ne sont pas interdites individuellement, mais leur combinaison complète ne doit pas être répétée. Conseils précis et concis.'
+  },
+  F: {
+    envie: '', programme: 'Sortie en ville', ressenti: '', confort: '',
+    precisions: 'Je sors en ville aujourd’hui. Propose-moi une tenue chic, féminine, avec une touche originale.'
+  }
 };
-
 const reference={
-G:{envie:'Chic féminin contemporain',programme:'Sortie en ville',ressenti:'Normal',confort:'Équilibré',precisions:'Je sors en ville. Propose une tenue féminine, harmonieuse et originale.'},
-H:{envie:'Chic féminin contemporain',programme:'Sortie en ville',ressenti:'Normal',confort:'Équilibré',precisions:'Je sors en ville. Propose une tenue féminine, harmonieuse et originale.'},
-I:{envie:'Chic féminin contemporain',programme:'Sortie en ville',ressenti:'Normal',confort:'Équilibré',precisions:'Je sors en ville. Propose une tenue féminine, harmonieuse et originale.'},
-J:{envie:'Chic féminin contemporain',programme:'Sortie en ville',ressenti:'Normal',confort:'Équilibré',precisions:'Je sors en ville. Propose une tenue féminine, harmonieuse et originale. Ignore volontairement la météo.'}
+  G:{envie:'Chic féminin contemporain',programme:'Sortie en ville',ressenti:'Normal',confort:'Équilibré',precisions:'Je sors en ville. Propose une tenue féminine, harmonieuse et originale.'},
+  H:{envie:'Chic féminin contemporain',programme:'Sortie en ville',ressenti:'Normal',confort:'Équilibré',precisions:'Je sors en ville. Propose une tenue féminine, harmonieuse et originale.'},
+  I:{envie:'Chic féminin contemporain',programme:'Sortie en ville',ressenti:'Normal',confort:'Équilibré',precisions:'Je sors en ville. Propose une tenue féminine, harmonieuse et originale.'},
+  J:{envie:'Chic féminin contemporain',programme:'Sortie en ville',ressenti:'Normal',confort:'Équilibré',precisions:'Je sors en ville. Propose une tenue féminine, harmonieuse et originale. Ignore volontairement la météo.'}
 };
-
 const meteoFictive={
-G:{conditions:'Pluie, vent',temperature_min_c:5,temperature_max_c:8,ressenti_min_c:2,ressenti_max_c:6,pluie_probabilite_max_pct:85,precipitations_mm:6,vent_max_kmh:35,rafales_max_kmh:55},
-H:{conditions:'Sec',temperature_min_c:9,temperature_max_c:14,ressenti_min_c:8,ressenti_max_c:13,pluie_probabilite_max_pct:5,precipitations_mm:0,vent_max_kmh:10,rafales_max_kmh:18},
-I:{conditions:'Ensoleillé',temperature_min_c:16,temperature_max_c:20,ressenti_min_c:15,ressenti_max_c:21,pluie_probabilite_max_pct:0,precipitations_mm:0,vent_max_kmh:8,rafales_max_kmh:15}
+  G:{conditions:'Pluie, vent',temperature_min_c:5,temperature_max_c:8,ressenti_min_c:2,ressenti_max_c:6,pluie_probabilite_max_pct:85,precipitations_mm:6,vent_max_kmh:35,rafales_max_kmh:55},
+  H:{conditions:'Sec',temperature_min_c:9,temperature_max_c:14,ressenti_min_c:8,ressenti_max_c:13,pluie_probabilite_max_pct:5,precipitations_mm:0,vent_max_kmh:10,rafales_max_kmh:18},
+  I:{conditions:'Ensoleillé',temperature_min_c:16,temperature_max_c:20,ressenti_min_c:15,ressenti_max_c:21,pluie_probabilite_max_pct:0,precipitations_mm:0,vent_max_kmh:8,rafales_max_kmh:15}
 };
 meteoFictive.J={...meteoFictive.G};
-
-let connected=false;
-let busy=false;
-let preflight=false;
-let latestD=null;
-
-function localDate(){
-const d=new Date();
-return [
-d.getFullYear(),
-String(d.getMonth()+1).padStart(2,'0'),
-String(d.getDate()).padStart(2,'0')
-].join('-');
-}
-
+let connected=false,busy=false,preflight=false,latestD=null;
+function localDate(){const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');}
 function updateButtons(){
-$('diagnostic-button').disabled=!connected||busy;
-document.querySelectorAll('.run').forEach(b=>{
-b.disabled=!connected||busy||!preflight||(b.dataset.test==='E'&&!latestD);
-});
+ $('diagnostic-button').disabled=!connected||busy;
+ document.querySelectorAll('.run').forEach(b=>b.disabled=!connected||busy||!preflight||(b.dataset.test==='E'&&!latestD));
 }
-
 async function checkSession(){
-const {data,error}=await db.auth.getSession();
-connected=!error&&!!data?.session;
-$('session-status').textContent=connected?'Connectée au dressing.':'Connecte-toi avec tes identifiants Mon Dressing.';
-$('login').hidden=connected;
-updateButtons();
+ const {data,error}=await db.auth.getSession();connected=!error&&!!data?.session;
+ $('session-status').textContent=connected?'Connectée au dressing.':'Connecte-toi avec tes identifiants Mon Dressing.';
+ $('login').hidden=connected;updateButtons();
 }
-
 $('login-button').onclick=async()=>{
-$('login-button').disabled=true;
-try{
-const {error}=await db.auth.signInWithPassword({
-email:$('email').value.trim(),
-password:$('password').value
-});
-if(error)throw error;
-$('password').value='';
-await checkSession();
-}catch(e){
-$('session-status').textContent='Connexion impossible : '+e.message;
-}finally{
-$('login-button').disabled=false;
-}
+ $('login-button').disabled=true;
+ try{const {error}=await db.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});
+ if(error)throw error;$('password').value='';await checkSession();}
+ catch(e){$('session-status').textContent='Connexion impossible : '+e.message;}
+ finally{$('login-button').disabled=false;}
 };
-
 async function invoke(mode,demande){
-const {data:{session},error}=await db.auth.getSession();
-if(error||!session)throw new Error('Session expirée. Reconnecte-toi.');
-const response=await fetch(SUPABASE_URL+'/functions/v1/assistant-style-labo',{
-method:'POST',
-headers:{
-'Content-Type':'application/json',
-'apikey':SUPABASE_KEY,
-'Authorization':'Bearer '+session.access_token
-},
-body:JSON.stringify(mode==='diagnostic'?{mode}:{mode,demande})
-});
-const body=await response.json().catch(()=>({error:'Réponse Supabase illisible.'}));
-return {status:response.status,ok:response.ok,body};
+ const {data:{session},error}=await db.auth.getSession();
+ if(error||!session)throw new Error('Session expirée. Reconnecte-toi.');
+ const response=await fetch(SUPABASE_URL+'/functions/v1/assistant-style-labo',{
+ method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+session.access_token},
+ body:JSON.stringify(mode==='diagnostic'?{mode}:{mode,demande})});
+ const body=await response.json().catch(()=>({error:'Réponse Supabase illisible.'}));
+ return {status:response.status,ok:response.ok,body};
 }
-
 $('diagnostic-button').onclick=async()=>{
-busy=true;
-preflight=false;
-updateButtons();
-$('diagnostic-status').textContent='Vérification en cours…';
-try{
-const r=await invoke('diagnostic');
-$('raw-response').textContent=JSON.stringify({http_status:r.status,...r.body},null,2);
-if(!r.ok||r.body.status!=='pret'){
-throw new Error('HTTP '+r.status+' — '+(r.body.error||'Diagnostic échoué.'));
-}
-if(r.body.fournisseur_configure!==true){
-throw new Error('Le fournisseur IA n’est pas configuré.');
-}
-preflight=true;
-$('diagnostic-status').textContent='Diagnostic réussi : '+r.body.nombre_pieces+' pièces indexées. Aucun appel IA payant.';
-}catch(e){
-$('diagnostic-status').textContent='Échec : '+e.message;
-}finally{
-busy=false;
-updateButtons();
-}
+ busy=true;preflight=false;updateButtons();$('diagnostic-status').textContent='Vérification en cours…';
+ try{
+ const r=await invoke('diagnostic');$('raw-response').textContent=JSON.stringify({http_status:r.status,...r.body},null,2);
+ if(!r.ok||r.body.status!=='pret')throw new Error('HTTP '+r.status+' — '+(r.body.error||'Le diagnostic a échoué.'));
+ if(r.body.fournisseur_configure!==true)throw new Error('Le fournisseur IA du laboratoire n’est pas configuré.');
+ preflight=true;
+ const a=r.body.controle_categories;
+ $('diagnostic-status').textContent='Diagnostic gratuit réussi : '+r.body.nombre_pieces+' pièces indexées. '+(a?('Classification : '+a.vestes+' veste(s), '+a.manteaux+' manteau(x). '):'')+'Aucun appel GPT.';
+ const display=$('diagnostic-categories');display.replaceChildren();
+ if(a){
+   const details=document.createElement('details');details.append(textEl('summary','Voir le classement réel des vestes et manteaux (gratuit)'));
+   for(const item of a.exterieurs||[]){
+     details.append(textEl('p','#'+item.id+' — '+item.nom+' — catégorie : '+item.categorie+' → rôle reconnu : '+item.role_calcule,'small'));
+   }
+   display.append(details);
+ }
+ }catch(e){$('diagnostic-status').textContent='Échec du diagnostic : '+e.message;}
+ finally{busy=false;updateButtons();}
 };
-
-function textEl(tag,content,cls){
-const el=document.createElement(tag);
-el.textContent=content??'';
-if(cls)el.className=cls;
-return el;
-}
-
+function textEl(tag,content,cls){const el=document.createElement(tag);el.textContent=content??'';if(cls)el.className=cls;return el;}
 function cardPhoto(piece,id){
-const div=document.createElement('div');
-div.className='piece';
-if(piece?.photo_url&&/^(https:\/\/|data:image\/)/.test(piece.photo_url)){
-const img=document.createElement('img');
-img.loading='lazy';
-img.src=piece.photo_url;
-img.alt=piece.nom||'Pièce du dressing';
-div.append(img);
-}else{
-div.append(textEl('p','Photo indisponible','small'));
+ const div=document.createElement('div');div.className='piece';
+ if(piece?.photo_url&&/^(https:\/\/|data:image\/)/.test(piece.photo_url)){
+ const img=document.createElement('img');img.loading='lazy';img.src=piece.photo_url;img.alt=piece.nom||'Pièce du dressing';div.append(img);
+ }else div.append(textEl('p','Photo indisponible','small'));
+ div.append(textEl('div',piece?.nom||'Pièce '+id,'name'));return div;
 }
-div.append(textEl('div',piece?.nom||'Pièce '+id,'name'));
-return div;
-}
-
 function optionsDansOrdre(body){
-const diag=body.diagnostic?.comparison||{};
-const alts=Array.isArray(body.alternatives)?body.alternatives:[];
-const selected=Number.isInteger(diag.selectedIndex)?diag.selectedIndex:0;
-const n=alts.length+1;
-const options=[];
-let a=0;
-for(let i=0;i<n;i++){
-const opt=i===selected?{tenue:body.tenue}:alts[a++];
-if(!opt?.tenue)continue;
-options.push({
-...opt,
-originalIndex:i,
-selected:i===selected,
-score:diag.subjectiveScores?.[i]
-});
+ const diag=body.diagnostic?.comparison||{};
+ const alts=Array.isArray(body.alternatives)?body.alternatives:[];
+ const selected=Number.isInteger(diag.selectedIndex)?diag.selectedIndex:0;
+ const n=alts.length+1;
+ const options=[];let a=0;
+ for(let i=0;i<n;i++){
+   const opt=i===selected?(body.selection?.tenue?body.selection:{tenue:body.tenue}):alts[a++];
+   if(!opt?.tenue)continue;
+   options.push({...opt,originalIndex:i,selected:i===selected,score:diag.subjectiveScores?.[i]});
+ }
+ return options.sort((a,b)=>Number(b.selected)-Number(a.selected)||a.originalIndex-b.originalIndex);
 }
-return options.sort((a,b)=>Number(b.selected)-Number(a.selected)||a.originalIndex-b.originalIndex);
-}
-
 async function photosEtInventaire(body,options){
-const ids=[...new Set(options.flatMap(o=>o.tenue.pieces||[]))];
-if(!ids.length)return {map:new Map(),watch:[],photoError:null};
-
-// Seulement les pièces sélectionnées, et non tout le dressing.
-const {data,error}=await db.from('vêtements')
-.select('id,nom,couleur,photo_url')
-.in('id',ids)
-.limit(ids.length);
-
-if(error)return {map:new Map(),watch:[],photoError:error.message};
-
-const map=new Map((data||[]).map(p=>[p.id,p]));
-return {
-map,
-watch:(data||[]).filter(p=>/z[eé]br|vert sapin|bottine.*vert|boot.*vert|vert.*bottin/i.test([p.nom,p.couleur].join(' '))),
-photoError:null
-};
+ const ids=[...new Set(options.flatMap(o=>o.tenue.pieces||[]))];
+ if(!ids.length)return {map:new Map(),watch:[],photoError:null};
+ // Une lecture seulement des IDs effectivement sélectionnés, sans requête sur tout le dressing.
+ const {data,error}=await db.from('vêtements').select('id,nom,couleur,photo_url').in('id',ids).limit(ids.length);
+ if(error)return {map:new Map(),watch:[],photoError:error.message};
+ const map=new Map((data||[]).map(p=>[p.id,p]));
+ return {map,watch:(data||[]).filter(p=>/z[eé]br|vert sapin|bottine.*vert|boot.*vert|vert.*bottin/i.test([p.nom,p.couleur].join(' '))),photoError:null};
 }
-
 function afficherLook(root,opt,inventaire){
-const card=document.createElement('article');
-card.className='look'+(opt.selected?' choice':'');
-
-card.append(textEl('span',opt.selected?'Tenue choisie par GPT':'Alternative '+(opt.originalIndex+1),'tag'));
-card.append(textEl('h3',opt.tenue.nom||'Tenue sans nom'));
-
-if(Number.isFinite(opt.score)){
-card.append(textEl('p','Auto-note GPT : '+opt.score+'/100 (subjective)','small'));
+ const card=document.createElement('article');card.className='look'+(opt.selected?' choice':'');
+ card.append(textEl('span',opt.selected?'Tenue retenue après comparaison':'Alternative '+(opt.originalIndex+1),'tag'));
+ card.append(textEl('h3',opt.tenue.nom||'Tenue sans nom'));
+ if(Number.isFinite(opt.score))card.append(textEl('p','Auto-note GPT : '+opt.score+'/100 (subjective)','small'));
+ card.append(textEl('p',opt.tenue.conseils||''));
+ const ids=opt.tenue.pieces||[];
+ const photos=document.createElement('div');photos.className='photos';ids.forEach(id=>photos.append(cardPhoto(inventaire.map.get(id),id)));card.append(photos);
+ card.append(textEl('p','Pièces : '+ids.join(', '),'small'));
+ if(opt.veste||opt.sac){
+ const details=document.createElement('div');details.className='decisions';
+ if(opt.veste)details.append(textEl('p','Veste / manteau : '+opt.veste.decision+' — '+opt.veste.raison));
+ if(opt.sac)details.append(textEl('p','Sac : '+opt.sac.decision+' — '+opt.sac.raison));
+ card.append(details);
+ }else{
+ card.append(textEl('p','Motifs détaillés veste/sac : non renvoyés pour la tenue gagnante dans cette V2.','small'));
+ }
+ root.append(card);
 }
-
-card.append(textEl('p',opt.tenue.conseils||''));
-
-const ids=opt.tenue.pieces||[];
-const photos=document.createElement('div');
-photos.className='photos';
-ids.forEach(id=>photos.append(cardPhoto(inventaire.map.get(id),id)));
-card.append(photos);
-card.append(textEl('p','Pièces : '+ids.join(', '),'small'));
-
-if(opt.veste||opt.sac){
-const details=document.createElement('div');
-details.className='decisions';
-if(opt.veste){
-details.append(textEl('p','Veste / manteau : '+opt.veste.decision+' — '+opt.veste.raison));
-}
-if(opt.sac){
-details.append(textEl('p','Sac : '+opt.sac.decision+' — '+opt.sac.raison));
-}
-card.append(details);
-}else{
-card.append(textEl('p','Motifs détaillés veste/sac : non renvoyés pour la tenue gagnante.','small'));
-}
-root.append(card);
-}
-
 function afficherAudit(body,inventaire){
-const d=body.diagnostic||{};
-const div=$('audit');
-div.replaceChildren();
-
-const p=d.plan;
-if(p){
-const meteo=p.utiliseMeteo?'Météo prise en compte':'Météo absente / ignorée';
-$('context-info').replaceChildren(
-textEl('p',meteo+' · Couche extérieure : '+p.exterieur+' · Sac : '+p.sac,'notice')
-);
+ const d=body.diagnostic||{};const div=$('audit');div.replaceChildren();
+ const p=d.plan;
+ if(p){
+  const meteo=p.utiliseMeteo?'Météo prise en compte':'Météo absente / ignorée';
+  $('context-info').replaceChildren(textEl('p',meteo+' · Couche extérieure : '+p.exterieur+' · Sac : '+p.sac,'notice'));
+ }
+ const choix=body.justificationChoix||d.comparison?.choixExplique;
+ if(choix){
+   const box=document.createElement('div');box.className='success';
+   box.append(textEl('strong','Pourquoi cette tenue a été retenue'));
+   box.append(textEl('p',choix,'small'));
+   if(body.comparaison)box.append(textEl('p','Comparaison GPT : '+body.comparaison,'small'));
+   div.append(box);
+ }
+ const audit=document.createElement('details');
+ audit.append(textEl('summary','Pièces repérées dans les tenues (zèbre et bottines vertes)'));
+ if(!inventaire.watch.length)audit.append(textEl('p','Aucune pièce correspondante parmi les photos chargées (ce contrôle ne porte plus sur tout le dressing).','small'));
+ for(const p of inventaire.watch){
+   const inDetail=(d.candidateIds||[]).includes(p.id);
+   const nominated=(d.nominatedIds||[]).includes(p.id);
+   audit.append(textEl('p','#'+p.id+' '+p.nom+' — '+(inDetail?'Fiche détaillée transmise':'Index seul')+(nominated?' ; nommée par GPT en présélection':''),'small'));
+ }
+ audit.append(textEl('p','Contrôle limité aux pièces des tenues affichées. Le diagnostic donne la liste complète des candidats.','small'));
+ div.append(audit);
+ const warns=[...(body.validation?.warnings||[])];
+ if(warns.length){const box=document.createElement('div');box.className='warning';box.append(textEl('strong','Avertissements du moteur'));warns.forEach(w=>box.append(textEl('p',w,'small')));div.append(box);}
+ const details=document.createElement('details');details.append(textEl('summary','Répartition des fiches détaillées'));
+ const parts=['haut','bas','robe','chaussures','veste','manteau','sac'].map(role=>{
+ const v=d.roleCoverage?.[role];return v?role+' : '+v.selected+'/'+v.total:'';
+ }).filter(Boolean);
+ details.append(textEl('p',parts.join(' · '),'small'));div.append(details);
 }
-
-const audit=document.createElement('details');
-audit.append(textEl('summary','Pièces repérées dans les tenues (zèbre et bottines vertes)'));
-
-if(!inventaire.watch.length){
-audit.append(textEl('p','Aucune pièce correspondante parmi les photos chargées.','small'));
-}
-
-for(const p of inventaire.watch){
-const inDetail=(d.candidateIds||[]).includes(p.id);
-const nominated=(d.nominatedIds||[]).includes(p.id);
-audit.append(textEl('p','#'+p.id+' '+p.nom+' — '+(inDetail?'Fiche détaillée transmise':'Index seul')+(nominated?' ; nommée par GPT':'') ,'small'));
-}
-audit.append(textEl('p','Ce contrôle porte uniquement sur les vêtements affichés.','small'));
-div.append(audit);
-
-const warns=[...(body.validation?.warnings||[])];
-if(warns.length){
-const box=document.createElement('div');
-box.className='warning';
-box.append(textEl('strong','Avertissements du moteur'));
-warns.forEach(w=>box.append(textEl('p',w,'small')));
-div.append(box);
-}
-
-const details=document.createElement('details');
-details.append(textEl('summary','Répartition des fiches détaillées'));
-const parts=['haut','bas','robe','chaussures','veste','manteau','sac'].map(r=>{
-const v=d.roleCoverage?.[r];
-return v?r+' : '+v.selected+'/'+v.total:'';
-}).filter(Boolean);
-details.append(textEl('p',parts.join(' · '),'small'));
-div.append(details);
-}
-
 function construireDemande(test){
-const base=test in prompts?{...prompts[test]}:{...reference[test]};
-if(test==='E'){
-if(!latestD)throw new Error('Lance D avant E.');
-base.previousPieceIds=[...latestD];
+ const base=test in prompts?{...prompts[test]}:{...reference[test]};
+ if(test==='E'){
+   if(!latestD)throw new Error('Lance D avant E, sans fermer ni actualiser la page.');
+   base.previousPieceIds=[...latestD];
+ }
+ const demande={...base,date:localDate(),lieu:'Sablet',meteo:null};
+ if(meteoFictive[test])demande.meteo={...meteoFictive[test],source:'Simulation de test',date:localDate(),lieu:'Sablet'};
+ if(test==='J')demande.ignorer_meteo=true;
+ return demande;
 }
-const demande={...base,date:localDate(),lieu:'Sablet',meteo:null};
-if(meteoFictive[test]){
-demande.meteo={
-...meteoFictive[test],
-source:'Simulation de test',
-date:localDate(),
-lieu:'Sablet'
-};
-}
-if(test==='J')demande.ignorer_meteo=true;
-return demande;
-}
-
 function enregistrerDernierResultat(body,statut=200){
-try{
-sessionStorage.setItem('mon-dressing-labo-v2-dernier-resultat',JSON.stringify({http_status:statut,...body}));
-}catch(e){}
+ try{sessionStorage.setItem('mon-dressing-labo-v2-dernier-resultat',JSON.stringify({http_status:statut,...body}));}catch(_e){}
 }
-
 async function afficherReponse(body,origine){
-if(!body?.tenue?.pieces){
-throw new Error('Aucune tenue dans le résultat.');
+ if(!body?.tenue?.pieces)throw new Error('JSON valide, mais aucune tenue n’est présente.');
+ const options=optionsDansOrdre(body);
+ $('looks').replaceChildren();$('audit').replaceChildren();$('context-info').replaceChildren();
+ // Le résultat est affiché AVANT la lecture des photos : un timeout ne le fait plus disparaître.
+ const sansPhotos={map:new Map(),watch:[],photoError:null};
+ options.forEach(o=>afficherLook($('looks'),o,sansPhotos));
+ afficherAudit(body,sansPhotos);
+ $('result-status').textContent=origine+' : '+options.length+' silhouettes affichées. Chargement des photos…';
+ let inventory;
+ try{ inventory=await photosEtInventaire(body,options); }
+ catch(e){ inventory={map:new Map(),watch:[],photoError:e?.message||String(e)}; }
+ if(inventory.map.size){
+   $('looks').replaceChildren();
+   options.forEach(o=>afficherLook($('looks'),o,inventory));
+ }
+ afficherAudit(body,inventory);
+ $('result-status').textContent=inventory.photoError
+   ? origine+' : '+options.length+' silhouettes affichées sans photos. Lecture des images impossible : '+inventory.photoError+'. Ne relance pas GPT pour cela.'
+   : origine+' : '+options.length+' silhouettes affichées'+(inventory.map.size?' avec les photos disponibles.':' ; aucune photo trouvée.');
 }
-
-const options=optionsDansOrdre(body);
-$('looks').replaceChildren();
-$('audit').replaceChildren();
-$('context-info').replaceChildren();
-
-// Afficher les tenues AVANT de charger les photos.
-const sansPhotos={map:new Map(),watch:[],photoError:null};
-options.forEach(o=>afficherLook($('looks'),o,sansPhotos));
-afficherAudit(body,sansPhotos);
-
-$('result-status').textContent=origine+' : '+options.length+' silhouettes affichées. Chargement des photos…';
-
-let inventory;
-try{
-inventory=await photosEtInventaire(body,options);
-}catch(e){
-inventory={map:new Map(),watch:[],photoError:e?.message||String(e)};
-}
-
-if(inventory.map.size){
-$('looks').replaceChildren();
-options.forEach(o=>afficherLook($('looks'),o,inventory));
-}
-afficherAudit(body,inventory);
-
-$('result-status').textContent=inventory.photoError
-?origine+' : '+options.length+' silhouettes affichées sans photos. Lecture impossible : '+inventory.photoError+'. Ne relance pas GPT.'
-:origine+' : '+options.length+' silhouettes affichées'+(inventory.map.size?' avec les photos disponibles.':' ; aucune photo trouvée.');
-}
-
 $('import-result').onclick=async()=>{
-if(busy)return;
-busy=true;
-updateButtons();
-$('import-result').disabled=true;
-try{
-const parsed=JSON.parse($('result-json-input').value.trim());
-if(parsed.http_status!==undefined&&parsed.http_status!==200){
-throw new Error('Le résultat ne vient pas d’un test réussi.');
-}
-if(!parsed?.tenue?.pieces){
-throw new Error('Le JSON ne contient pas tenue.pieces.');
-}
-$('raw-response').textContent=JSON.stringify(parsed,null,2);
-enregistrerDernierResultat(parsed,200);
-$('import-feedback').textContent='Résultat importé sans nouvel appel GPT.';
-await afficherReponse(parsed,'Résultat importé gratuitement');
-}catch(e){
-$('import-feedback').textContent='Impossible d’importer : '+(e?.message||String(e));
-}finally{
-busy=false;
-$('import-result').disabled=false;
-updateButtons();
-}
+ if(busy)return;
+ busy=true;updateButtons();$('import-result').disabled=true;
+ try{
+   const parsed=JSON.parse($('result-json-input').value.trim());
+   if(parsed.http_status!==undefined&&parsed.http_status!==200)throw new Error('Le JSON provient d’un test qui n’a pas réussi.');
+   if(!parsed?.tenue?.pieces)throw new Error('Il manque la propriété tenue.pieces dans ce résultat.');
+   $('raw-response').textContent=JSON.stringify(parsed,null,2);
+   enregistrerDernierResultat(parsed,200);
+   $('import-feedback').textContent='Résultat importé sans nouvel appel GPT.';
+   await afficherReponse(parsed,'Résultat importé gratuitement');
+ }catch(e){$('import-feedback').textContent='Impossible d’importer : '+(e?.message||String(e));}
+ finally{busy=false;$('import-result').disabled=false;updateButtons();}
 };
-
 $('restore-result').onclick=()=>{
-try{
-const raw=sessionStorage.getItem('mon-dressing-labo-v2-dernier-resultat');
-if(!raw)throw new Error('Aucun résultat mémorisé dans cet onglet. Utilise le champ de collage.');
-$('result-json-input').value=raw;
-$('import-result').click();
-}catch(e){
-$('import-feedback').textContent=e.message;
-}
+ try{
+   const raw=sessionStorage.getItem('mon-dressing-labo-v2-dernier-resultat');
+   if(!raw)throw new Error('Aucun résultat mémorisé dans cet onglet. Utilise le champ de collage.');
+   $('result-json-input').value=raw;
+   $('import-result').click();
+ }catch(e){$('import-feedback').textContent=e.message;}
 };
-
 async function lancer(test){
-busy=true;
-updateButtons();
-$('looks').replaceChildren();
-$('audit').replaceChildren();
-$('context-info').replaceChildren();
-$('result-status').textContent='Test '+test+' lancé. Appels IA payants en cours…';
-$('raw-response').textContent='—';
-$('result-section').scrollIntoView({behavior:'smooth',block:'start'});
-
-try{
-const demande=construireDemande(test);
-const r=await invoke('generer',demande);
-$('raw-response').textContent=JSON.stringify({http_status:r.status,...r.body},null,2);
-if(!r.ok){
-throw new Error('HTTP '+r.status+' — '+(r.body.code||'')+' '+(r.body.error||'Génération impossible'));
+ busy=true;updateButtons();$('looks').replaceChildren();$('audit').replaceChildren();$('context-info').replaceChildren();
+ $('result-status').textContent='Test '+test+' lancé. Appels IA payants en cours…';$('raw-response').textContent='—';
+ $('result-section').scrollIntoView({behavior:'smooth',block:'start'});
+ try{
+   const demande=construireDemande(test);
+   const r=await invoke('generer',demande);
+   $('raw-response').textContent=JSON.stringify({http_status:r.status,...r.body},null,2);
+   if(!r.ok)throw new Error('HTTP '+r.status+' — '+(r.body.code||'')+' '+(r.body.error||'Génération impossible'));
+   if(!r.body.tenue?.pieces)throw new Error('La réponse ne contient pas de tenue exploitable.');
+   enregistrerDernierResultat(r.body,r.status);
+   await afficherReponse(r.body,'Test '+test+' réussi');
+   if(test==='D')latestD=[...r.body.tenue.pieces];
+ }catch(e){$('result-status').textContent='Erreur : '+e.message+' — ouvre « Détails techniques » et envoie-moi une capture.';}
+ finally{busy=false;updateButtons();}
 }
-if(!r.body.tenue?.pieces){
-throw new Error('La réponse ne contient pas de tenue.');
-}
-enregistrerDernierResultat(r.body,r.status);
-await afficherReponse(r.body,'Test '+test+' réussi');
-if(test==='D')latestD=[...r.body.tenue.pieces];
-}catch(e){
-$('result-status').textContent='Erreur : '+e.message+' — consulte les détails techniques.';
-}finally{
-busy=false;
-updateButtons();
-}
-}
-
-document.querySelectorAll('.run').forEach(b=>{
-b.onclick=()=>lancer(b.dataset.test);
-});
+document.querySelectorAll('.run').forEach(b=>b.onclick=()=>lancer(b.dataset.test));
 checkSession();
 </script>
 </body>
