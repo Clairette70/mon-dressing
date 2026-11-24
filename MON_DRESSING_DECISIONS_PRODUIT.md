@@ -26,11 +26,15 @@ L'expérience visée : ouvrir l'application sur iPhone ou Mac, renseigner quelqu
 2. Visualiser directement la tenue complète (haut + bas ou robe, chaussures, sac et couche extérieure le cas échéant).
 3. Si une pièce ne convient pas, choisir **« Changer cette pièce »** : c'est l'interaction **prioritaire**.
 4. Le reste de la tenue demeure **strictement inchangé** ; le moteur sélectionne une alternative harmonieuse parmi les pièces disponibles. Revenir en arrière doit être possible.
-5. Si aucune substitution satisfaisante n'existe, le système le signale plutôt que dégrader le look.
-6. **« Je porte cette tenue »** confirme une tenue effectivement portée ; ne pas confondre proposition et port réel.
-7. « Une autre tenue complète » reste possible, mais secondaire par rapport au remplacement ciblé.
+5. **Une seule pièce de remplacement est présentée à la fois**, choisie par l'IA ; ne pas demander à l'utilisatrice de comparer trois candidates.
+6. Si le premier remplacement ne convient pas, **« Une autre pour cette pièce »** cherche une nouvelle candidate sans changer les autres vêtements et, si possible, sans reproposer immédiatement une candidate déjà refusée dans cette session.
+7. La substitution reste **provisoire** jusqu'à confirmation ; prévoir un retour à la pièce d'origine. Si aucune autre substitution satisfaisante n'existe, le signaler plutôt que dégrader la tenue.
+8. **« Je porte cette tenue »** confirme une tenue effectivement portée ; ne pas confondre proposition et port réel.
+9. « Une autre tenue complète » reste possible, mais secondaire par rapport au remplacement ciblé.
 
-**Choix technique encore ouvert :** remplacement par filtrage local, mini-appel IA ciblé ou méthode hybride. Comparer qualité, coût, rapidité et fiabilité avant d'implémenter.
+**Décision d'interface validée le 24 novembre 2026 :** une seule nouvelle pièce choisie par l'IA, avec un bouton pour en demander une autre pour le **même emplacement**. Les autres pièces restent verrouillées. Le résultat doit rester rapide et d'abord visuel.
+
+**Choix technique encore ouvert :** remplacement par filtrage local, mini-appel IA ciblé ou méthode hybride. L'approche hybride est une **recommandation à valider**, pas un choix technique déjà adopté. Comparer qualité, coût, rapidité, maintien des pièces et fiabilité avant d'implémenter.
 
 ## 4. Rotation et exploitation du dressing
 
