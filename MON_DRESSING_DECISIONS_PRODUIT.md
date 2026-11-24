@@ -45,6 +45,15 @@ L'expérience visée : ouvrir l'application sur iPhone ou Mac, renseigner quelqu
 - À terme, proposer des analyses des favoris, pièces délaissées, doublons et vêtements à redécouvrir.
 - La diversité **dans le temps** prime sur la présentation de plusieurs tenues à chaque requête.
 
+**Décision validée le 24 novembre 2026 — refus contextualisé :**
+- Quand l'utilisatrice demande à remplacer un vêtement, cela signifie **« cette pièce ne convient pas dans cette association »**, et **non** « je n'aime pas cette pièce en général ».
+- Le moteur peut donc reproposer ce vêtement dans une autre tenue, avec d'autres associations.
+- Durant la série de remplacements de la **même pièce dans la même tenue**, éviter de revenir immédiatement à une alternative déjà refusée ; conserver la possibilité d'annuler et de revenir à l'original.
+- Pour préparer la mémoire de rotation, rattacher le retour au **contexte de la tenue** (identifiants des pièces associées et pièce remplacée), plutôt que diminuer globalement la préférence pour le vêtement.
+- Un désamour durable pour un vêtement relève d'une éventuelle fonction **distincte et explicite**, jamais déduite automatiquement d'un simple changement de pièce.
+
+**Statut : règle produit validée, non encore implémentée.** Le schéma précis de l'historique reste à concevoir.
+
 ## 5. Météo pragmatique
 
 - Éviter les incohérences évidentes entre température et tenue.
