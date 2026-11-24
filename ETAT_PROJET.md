@@ -31,7 +31,7 @@ Le contrat produit complet, ses priorités et les décisions encore ouvertes son
 | Catalogue du laboratoire | **50 pièces** au dernier diagnostic gratuit | Diagnostic affiché à l'utilisatrice ; 3 vestes et 1 manteau classés correctement après correction |
 | Interface de laboratoire | Génération de trois propositions, comparaison, affichage des vraies photos, import gratuit d'un JSON obtenu précédemment | Testé sur la page GitHub |
 | Profil permanent modifiable et rotation historique | **Objectifs validés, non encore intégrés de bout en bout** | À concevoir / vérifier |
-| Bouton « Changer cette pièce » | **Priorité fonctionnelle validée ; non développé / non vérifié** | Architecture à comparer avant implémentation |
+| Bouton « Changer cette pièce » | **Décision validée : une seule alternative IA à la fois, possibilité d'en demander une autre ; non développé / non vérifié** | Architecture technique à comparer avant implémentation |
 | Journal « examinée / proposée / enregistrée / portée » | **À concevoir** | Ne pas assimiler une proposition à un vêtement porté |
 
 **Important :** le titre visible dans la page peut rester « Laboratoire V2 » alors que son titre HTML et sa logique correspondent à V2.2. Le fichier GitHub ne contient pas la source de la fonction Supabase déployée ; il faut consulter Supabase pour confirmer une version serveur exacte.
@@ -64,7 +64,7 @@ Le test B révèle un défaut de robustesse indépendant de la qualité stylisti
 ## 5. Priorités fonctionnelles validées mais restant à réaliser
 
 1. **Valider le cœur stylistique**, sur un ensemble varié de tenues effectivement jugées portables, avant intégration à la V9.
-2. **« Changer cette pièce »** : conserver strictement les autres articles, sélectionner une alternative compatible, autoriser retour arrière et signaler l'absence de solution satisfaisante. Comparer filtrage local, appel IA ciblé et approche hybride selon qualité / coût / rapidité.
+2. **« Changer cette pièce »** : décision produit confirmée — **une seule pièce alternative choisie par l'IA à la fois**, avec **« Une autre pour cette pièce »** ; conserver strictement tous les autres IDs, éviter les répétitions dans la même série de remplacements, autoriser retour arrière et signaler l'absence de solution satisfaisante. **Non implémenté.** Comparer filtrage local, appel IA ciblé et approche hybride selon qualité / coût / rapidité ; **architecture non validée**.
 3. **Mémoire de rotation** et historique d'utilisation : distinguer *pièce examinée*, *pièce proposée*, *tenue enregistrée*, *pièce réellement portée*.
 4. **Profil stylistique permanent éditable**, réutilisé sans saisie répétitive.
 5. **Planches visuelles et lookbooks** à partir des vrais vêtements, intégration stable iPhone/Mac, coûts maîtrisés et fournisseur IA interchangeable.
