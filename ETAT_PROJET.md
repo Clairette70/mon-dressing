@@ -1,56 +1,96 @@
-# MON DRESSING — Référence du projet
-*Mise à jour : 17 novembre 2026 — document de continuité à actualiser après chaque étape validée.*
+# MON DRESSING — État du projet et méthode de continuité
 
-## 1. Vision
-Application personnelle de dressing sur iPhone et Mac, avec un assistant stylistique exigeant, créatif, indépendant, cohérent et non complaisant. Utiliser **les vrais vêtements** de l’utilisatrice pour créer des tenues portables et visuellement intéressantes. Mieux exploiter un dressing raisonné (maximum 500 pièces), pas favoriser de nouveaux achats.
+**Mise à jour : 24 novembre 2026**  
+**Document opérationnel : versions, résultats vérifiés, limites et prochaines étapes.**  
+**Direction artistique et fonctionnelle : voir [MON_DRESSING_DECISIONS_PRODUIT.md](MON_DRESSING_DECISIONS_PRODUIT.md).**
 
-## 2. État confirmé
-- Application web **V9** installée et fonctionnelle : ajout de photographies testé.
-- Hébergement / code : GitHub ; données et fonction IA : Supabase.
-- Fonction actuellement utilisée par la V9 : **`assistant-style`** (Supabase Edge Function).
-- Fournisseur actuel du moteur : Groq, modèle `openai/gpt-oss-120b`.
-- Correctif du **16 novembre 2026** : fichier `mon_dressing_moteur_corrige_2026-11-16.ts`, fondé sur `assistant-style-v2`, compatible avec la V9 ; il a été collé et déployé dans `assistant-style` d’après l’utilisatrice.
-- **16 tests locaux** annoncés comme réussis pour ce correctif, mais **qualité réelle non validée** : troisième passage du test 4 bloqué par « limite Groq atteinte ».
-- **Ancienne V10 à ne pas installer** : fondée sur un moteur antérieur.
-- **Pas de nouveau fournisseur API activé à ce stade.** Aucun choix payant définitivement validé ; GPT et Claude évoqués, comparaison réelle non faite.
+> **Principe :** ne jamais confondre une décision validée, un code installé, un test technique réussi et une tenue jugée réellement portable. Les affirmations sur Supabase ci-dessous reposent sur les résultats et captures communiqués par l'utilisatrice ; la connexion GitHub ne permet pas à elle seule de lire le code actuellement déployé dans Supabase.
 
-## 3. Exigences prioritaires
-1. Tenues réellement harmonieuses : couleurs, colorimétrie froide, matières, coupes, proportions, volumes, encolures, superpositions, confort ; savoir choisir une tenue simple plutôt que surcharger.
-2. Style personnel féminin, chic, moderne, parfois rock ; préserver un jugement indépendant, non complaisant, créatif sans être fantaisiste.
-3. Respect strict des vêtements existants et de leurs caractéristiques connues ; aucune pièce ni propriété inventée.
-4. Prendre en compte occasion, envie, météo / température / vent / pluie, ressenti thermique, contraintes explicites, choix d’une pièce imposée ; pouvoir ignorer la météo sur demande.
-5. Conserver les informations utiles des fiches de 500 pièces maximum ; éviter qu’une présélection masquée élimine systématiquement des pièces pertinentes.
-6. Conseils stylistiques précis, courts, argumentés, sur les seuls articles réellement sélectionnés.
-7. Photos de vêtements bien détourées et idéalement transparentes ; planches de looks et lookbooks à partir des vrais articles.
-8. Mémoire des appréciations et refus, correction des tenues, diversité des propositions.
-9. Distinguer quatre événements : pièce analysée / proposée / tenue enregistrée / pièce réellement portée ; statistiques du dressing, pièces inutilisées, doublons, vêtements à redécouvrir et achats complémentaires éventuels.
-10. Application stable iPhone et Mac, avec évolutions testées, coûts maîtrisés, sauvegardes et capacité de changer de fournisseur IA sans réécrire l’application.
+## 1. Vision — rappel synthétique
 
-## 4. Échecs / preuves actuelles
-- **Test 4 : robe blazer noire à double boutonnage.** Deux essais jugés insuffisants (autour de 5/10), notamment avec ceinture argentée et poncho gris peu pertinents ; les corrections ad hoc ont conduit à multiplier les exceptions.
-- Troisième essai du 16 novembre impossible à évaluer : plafond ou limite Groq atteint.
-- **Le passage de 16 tests de code ne prouve pas la qualité réelle du conseil stylistique.**
-- Les photos ne sont pas actuellement interprétées par le moteur stylistique à chaque génération : ce dernier exploite surtout des descriptions.
-- En cas de volume important, les données de fiches sont condensées et des pièces peuvent être présélectionnées. Risque de perdre des informations utiles.
+Mon Dressing est une application personnelle iPhone/Mac pour **gagner du temps chaque jour** : renseigner le contexte, recevoir **une tenue principale prête à porter** avec ses propres pièces, pouvoir **changer une seule pièce** sans recomposer tout le look, puis confirmer **« Je porte cette tenue »**.
 
-## 5. Nouvelle méthode retenue — principes de développement
-- **Arrêter les règles spécifiques à un vêtement ou à un test** comme solution centrale.
-- Définir un « contrat stylistique » général avec des **contraintes dures** (pièces existantes, IDs, demandes expresses, catégories indispensables) et des **préférences souples** (esthétique, degré de superposition, créativité).
-- Séparer clairement 5 composants : (1) catalogue et fiches de qualité ; (2) recherche / présélection traçable et sans pertes critiques ; (3) raisonnement stylistique par l’IA ; (4) validation déterministe des faits et contraintes ; (5) retours, historique et analyses.
-- Versionner les tests représentatifs et les résultats ; contrôler les régressions avant chaque déploiement.
-- Ne modifier le code en production qu'après sauvegarde et validation dans un environnement de test.
-- Garder des fonctions et schémas indépendants du fournisseur (adaptateur OpenAI, Claude, etc.).
+- Dresser un catalogue raisonné de **500 pièces maximum**, sans favoriser les achats.
+- Construire des tenues harmonieuses, féminines, chic contemporain, parfois romantiques, rock ou vintage ; **contraste maîtrisé** et proportions flatteuses pour une morphologie en A.
+- Faire **tourner intelligemment les vêtements dans la durée** : une pièce ne doit pas être imposée si elle dégrade l'ensemble, mais les mêmes chaussures et sacs ne doivent pas revenir par automatisme.
+- Valoriser les **photographies et le résultat visuel**. Les explications écrites sont secondaires, facultatives et concises : **40 mots ne constituent pas une limite métier bloquante**.
+- Météo comme contexte utile, **désactivable** ; ne pas exiger des vêtements imperméables que le dressing ne possède pas.
 
-## 6. Démonstration de valeur AVANT une refonte complète
-- Geler la V9, conserver une sauvegarde du code `assistant-style`.
-- Définir **10 situations de test représentatives** et une grille commune : fidélité aux fiches, faisabilité/compatibilité, cohérence stylistique, personnalisation, qualité du conseil, diversité.
-- Tester un moteur payant **en laboratoire**, sur les vraies fiches et plusieurs styles, sans remplacer l’application en production.
-- Se donner des critères de décision : **zéro vêtement inventé**, demandes expresses respectées, pas d’erreur manifeste de composition et **au moins 8 tenues sur 10 jugées satisfaisantes** par l’utilisatrice. Ce dernier seuil est **une cible proposée, non un résultat mesuré**.
-- Si les résultats ne sont pas au rendez-vous, analyser si l’échec provient du modèle, des informations envoyées ou de l’architecture avant de changer encore de fournisseur.
-- Ne développer ensuite les fonctions avancées (mémoire, statistiques, vision) qu’une fois le cœur stylistique validé.
+Le contrat produit complet, ses priorités et les décisions encore ouvertes sont conservés dans `MON_DRESSING_DECISIONS_PRODUIT.md`.
 
-## 7. Continuité entre conversations
-Cette fiche est la **source de vérité écrite** : la relire au début de toute nouvelle session et la mettre à jour seulement après un changement validé. Il est possible de la placer dans le dépôt GitHub (par exemple `docs/ETAT_PROJET.md`) ou de la joindre à une nouvelle conversation. Ne pas supposer qu’une nouvelle conversation connaît automatiquement l’état exact du code ou des tests. Conserver en outre les fichiers sources versionnés et, pour chaque modification, noter : version installée, correctif, raison, tests réussis / non réussis, prochaine action.
+## 2. État observé au 24 novembre 2026
 
-## 8. Prochaine étape, sans coût et sans toucher à la V9
-Établir le **contrat stylistique général et la grille des 10 cas de test**, puis préparer le moteur de laboratoire. Le choix précis du fournisseur API sera validé après la comparaison des besoins techniques et un premier test, et non sur un argument commercial.
+| Élément | État | Source / limite de confirmation |
+|---|---|---|
+| Application publique | **V9 conservée**, utilisable sur iPhone/Mac | Déclarations et essais de l'utilisatrice ; `index.html` est présent sur GitHub |
+| Hébergement de l'interface | **GitHub Pages**, dépôt `Clairette70/mon-dressing`, branche `main` | Vérifiable dans GitHub |
+| Données et Edge Functions | **Supabase** | Fonctions déployées à contrôler dans Supabase en cas de changement |
+| Fonction de production | `assistant-style` ; historique de moteur **Groq / GPT-OSS 120B** | État technique hérité ; ne pas présumer d'un nouveau déploiement sans vérification |
+| Fonction laboratoire | `assistant-style-labo` ; **V2.2** selon déploiement et diagnostic de l'utilisatrice | Page GitHub `test-styles-labo.html` confirmée en V2.2 ; backend Supabase non stocké dans ce dépôt |
+| Fournisseur laboratoire | **OpenAI payant**, distinct du moteur de production | Confirmé par les réponses de tests antérieurs (`fournisseur: openai`) |
+| Catalogue du laboratoire | **50 pièces** au dernier diagnostic gratuit | Diagnostic affiché à l'utilisatrice ; 3 vestes et 1 manteau classés correctement après correction |
+| Interface de laboratoire | Génération de trois propositions, comparaison, affichage des vraies photos, import gratuit d'un JSON obtenu précédemment | Testé sur la page GitHub |
+| Profil permanent modifiable et rotation historique | **Objectifs validés, non encore intégrés de bout en bout** | À concevoir / vérifier |
+| Bouton « Changer cette pièce » | **Priorité fonctionnelle validée ; non développé / non vérifié** | Architecture à comparer avant implémentation |
+| Journal « examinée / proposée / enregistrée / portée » | **À concevoir** | Ne pas assimiler une proposition à un vêtement porté |
+
+**Important :** le titre visible dans la page peut rester « Laboratoire V2 » alors que son titre HTML et sa logique correspondent à V2.2. Le fichier GitHub ne contient pas la source de la fonction Supabase déployée ; il faut consulter Supabase pour confirmer une version serveur exacte.
+
+## 3. Tests réels et enseignements
+
+| Test | Résultat constaté | Appréciation humaine / conclusion |
+|---|---|---|
+| **F — Liberté stylistique** | Génération de 3 tenues en V2.2 ; affichage avec photos | **Tenue gagnante portable**, selon l'utilisatrice |
+| **G — 8 °C, pluie, vent fictifs** | Génération de 3 tenues en V2.2 ; contexte météo pris en compte | **Tenue gagnante portable**, selon l'utilisatrice ; ne pas surévaluer le manque d'imperméables |
+| **B — Rock chic / robe blazer** | **HTTP 422 COMPARAISON_INVALIDE** : conseils de l'option 3 dépassant 40 mots | **Échec technique de validation, pas un refus esthétique** ; aucune tenue B n'a pu être évaluée |
+| Ancien test « robe blazer » (16 novembre) | Essais antérieurs insatisfaisants ; troisième tentative bloquée par limite Groq | Historique antérieur à V2.2, ne pas confondre avec le test B récent |
+
+**Bilan : 2 tenues gagnantes déclarées portables sur 2 évaluées pour F et G.** Cela ne valide pas encore le moteur : objectif d'acceptation proposé **au moins 8 tenues satisfaisantes sur 10**, zéro vêtement inventé, contraintes explicites respectées et qualité déterminée par l'utilisatrice.
+
+Le test B révèle un défaut de robustesse indépendant de la qualité stylistique. Une erreur de texte mineure ne doit pas faire perdre des résultats déjà payés. **Aucune solution technique à ce défaut n'est ici réputée déployée** ; comparer les options avant modification.
+
+## 4. Contrat stylistique et règles de validation
+
+**Contraintes dures :** IDs existants ; tenue techniquement composable (robe ou haut+bas, chaussures si disponibles) ; éléments explicitement imposés ou exclus ; pas d'invention de propriétés ou d'articles ; cohérence du format de réponse.
+
+**Préférences souples :** couleurs froides sans interdiction absolue ; morphologie en A ; équilibre des volumes, tissus, décolletés et superpositions ; élégance, contraste maîtrisé, audace mesurée ; météo et ressenti pragmatiques ; rotation intelligente.
+
+**Principes :**
+- Ne pas forcer une veste, un sac ou une pièce rarement portée si cela dégrade la tenue.
+- La sélection de plusieurs looks peut rester **interne au laboratoire**, mais l'interface cible n'en présente **qu'un seul par défaut**.
+- Les photographies des vrais articles doivent être utilisées pour l'affichage ; **la vision par IA n'est pas encore démontrée**.
+- Garder les conseils facultatifs et utiles, sans validation de longueur susceptible de bloquer toute une tenue.
+
+## 5. Priorités fonctionnelles validées mais restant à réaliser
+
+1. **Valider le cœur stylistique**, sur un ensemble varié de tenues effectivement jugées portables, avant intégration à la V9.
+2. **« Changer cette pièce »** : conserver strictement les autres articles, sélectionner une alternative compatible, autoriser retour arrière et signaler l'absence de solution satisfaisante. Comparer filtrage local, appel IA ciblé et approche hybride selon qualité / coût / rapidité.
+3. **Mémoire de rotation** et historique d'utilisation : distinguer *pièce examinée*, *pièce proposée*, *tenue enregistrée*, *pièce réellement portée*.
+4. **Profil stylistique permanent éditable**, réutilisé sans saisie répétitive.
+5. **Planches visuelles et lookbooks** à partir des vrais vêtements, intégration stable iPhone/Mac, coûts maîtrisés et fournisseur IA interchangeable.
+
+## 6. Méthode obligatoire avant les évolutions
+
+1. **Lire les références à jour** : d'abord `MON_DRESSING_DECISIONS_PRODUIT.md` pour les décisions artistiques et fonctionnelles, puis ce document pour le statut et les risques.
+2. **Vérifier le code effectivement concerné**, dans GitHub pour le frontend et dans Supabase pour les fonctions serveur. Si une source est inaccessible, le signaler : ne jamais prétendre l'avoir contrôlée.
+3. **Recentrer la demande sur l'objectif** : valeur quotidienne, qualité visuelle, rotation du dressing et gain de temps.
+4. **Comparer les options** selon qualité, complexité, coûts, risque de régression et réversibilité ; formuler une recommandation argumentée.
+5. **Faire valider les décisions structurantes par l'utilisatrice**, responsable de la direction artistique et produit ; éviter de lui faire arbitrer des détails techniques inutiles.
+6. **Modifier en laboratoire**, sauvegarder, tester les cas représentatifs et les non-régressions ; protéger `assistant-style` et la V9 jusqu'à accord explicite.
+7. **Mettre à jour les deux documents** après une décision ou un déploiement réellement validé ; distinguer « décidé », « développé », « déployé », « testé » et « jugé satisfaisant ».
+
+**Reprise d'une nouvelle conversation :** au message « On reprend Mon Dressing », rechercher ces documents dans le dépôt, contrôler leur date, résumer brièvement l'état réel et proposer l'étape la plus utile. L'accès au dépôt n'est pas garanti à chaque session ; annoncer les limites d'accès. Ne pas lancer de test payant répétitif sans justification.
+
+## 7. Historique technique à conserver
+
+- **16 novembre 2026 :** V9 et `assistant-style` (historique Groq), correctif `mon_dressing_moteur_corrige_2026-11-16.ts` transmis ; 16 tests locaux annoncés réussis, insuffisants pour attester la qualité des looks ; limite Groq rencontrée. **Ne pas installer l'ancienne V10** fondée sur un moteur antérieur.
+- **17 novembre 2026 :** audit structurel de la V9 et conception d'un moteur laboratoire, pour éviter les correctifs ad hoc, distinguer catalogue / sélection / IA / validation / retours et préserver les données des fiches.
+- **18–22 novembre 2026 :** évolution du moteur laboratoire en deux passes avec index jusqu'à 500 pièces, comparaison de tenues, diagnostics, puis correction de classification veste/manteau et affichage photo. Plusieurs erreurs de validation et de schéma rencontrées puis identifiées.
+- **22–24 novembre 2026 :** laboratoire V2.2 testé avec 50 pièces ; F et G déclarées portables ; B bloqué par la validation stricte des 40 mots.
+- **24 novembre 2026 :** cap produit reformulé : un look principal, remplacement ciblé d'une pièce, rotation du dressing dans le temps, conseils écrits secondaires et gouvernance partagée avec décision artistique finale de l'utilisatrice.
+
+**Archives à conserver** : `AUDIT_MON_DRESSING_V9_CONSOLIDE_2026-11-17.md` et `CONCEPTION_MOTEUR_STYLISTIQUE_V1.md`. Leur contenu représente l'état de connaissances à leurs dates respectives ; ce ne sont pas des affirmations sur la production actuelle.
+
+## 8. Prochaine action décidée
+
+**Pas de refonte ni de test payant déclenché automatiquement.** Examiner avec l'utilisatrice la robustesse du laboratoire et les solutions techniques pour le remplacement ciblé d'une pièce et la mémoire de rotation, en se fondant sur ce document et sur les décisions produit. Prioriser l'évaluation stylistique par l'utilisatrice avant toute promotion en production.
