@@ -91,6 +91,21 @@ Le test B révèle un défaut de robustesse indépendant de la qualité stylisti
 
 **Archives à conserver** : `AUDIT_MON_DRESSING_V9_CONSOLIDE_2026-11-17.md` et `CONCEPTION_MOTEUR_STYLISTIQUE_V1.md`. Leur contenu représente l'état de connaissances à leurs dates respectives ; ce ne sont pas des affirmations sur la production actuelle.
 
-## 8. Prochaine action décidée
+## 8. Audit Supabase et préparation du journal — 24 novembre 2026
+
+**Audit direct réalisé en lecture seule** avec le connecteur Supabase, sur le projet identifié dans le frontend :
+- `public."vêtements"` : **50 lignes**, RLS activée, identifiant bigint ; politiques réservées à un utilisateur authentifié déterminé.
+- `public.tenues` : **3 lignes**, RLS activée, `user_id uuid` lié à `auth.users`, `pieces jsonb` ; politiques d'accès par propriétaire pour SELECT/INSERT/UPDATE/DELETE.
+- Aucune table `labo_sessions` ou `labo_evenements` constatée ; aucune migration existante enregistrée dans l'historique Supabase.
+- Deux fichiers enregistrés dans GitHub : `sql/diagnostic_historique_rotation.sql` (lecture seule) et `sql/PROPOSITION_historique_rotation_NON_APPLIQUE.sql` (**proposition non exécutée**). Aucun changement de schéma ni de production effectué.
+- La proposition prévoit un journal append-only lié à l'utilisateur, RLS, séparation entre proposé/sauvegardé/porté, refus limités à l'association, annulation d'un port erroné. Avant adoption, **évaluer et tester** la migration, les droits, l'intégrité du catalogue et le comportement en cas de double clic.
+
+**Avertissements de sécurité existants, sans lien direct avec les nouvelles tables :**
+- `public.rls_auto_enable()` est une fonction `SECURITY DEFINER` exécutable par `anon` et `authenticated` selon les advisors et la vérification SQL. Examiner sa finalité et révoquer les droits d'exécution superflus dans une modification distincte et validée.
+- La protection Supabase Auth contre les mots de passe compromis est désactivée ; recommandation d'activation après vérification des options du projet.
+
+**Ne pas traiter ces alertes comme corrigées.** Ne pas appliquer la proposition SQL sur le projet principal tant que les tests et la stratégie d'intégration n'ont pas été validés.
+
+## 9. Prochaine action décidée
 
 **Pas de refonte ni de test payant déclenché automatiquement.** Examiner avec l'utilisatrice la robustesse du laboratoire et les solutions techniques pour le remplacement ciblé d'une pièce et la mémoire de rotation, en se fondant sur ce document et sur les décisions produit. Prioriser l'évaluation stylistique par l'utilisatrice avant toute promotion en production.
