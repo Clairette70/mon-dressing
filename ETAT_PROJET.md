@@ -65,7 +65,7 @@ Le test B révèle un défaut de robustesse indépendant de la qualité stylisti
 
 1. **Valider le cœur stylistique**, sur un ensemble varié de tenues effectivement jugées portables, avant intégration à la V9.
 2. **« Changer cette pièce »** : décision produit confirmée — **une seule pièce alternative choisie par l'IA à la fois**, avec **« Une autre pour cette pièce »** ; conserver strictement tous les autres IDs, éviter les répétitions dans la même série de remplacements, autoriser retour arrière et signaler l'absence de solution satisfaisante. **Non implémenté.** Comparer filtrage local, appel IA ciblé et approche hybride selon qualité / coût / rapidité ; **architecture non validée**.
-3. **Mémoire de rotation** et historique d'utilisation : distinguer *pièce examinée*, *pièce proposée*, *tenue enregistrée*, *pièce réellement portée*.
+3. **Mémoire de rotation** et historique d'utilisation : distinguer *pièce examinée*, *pièce proposée*, *tenue enregistrée*, *pièce réellement portée*. **Décision validée le 24 novembre : le refus de remplacement est contextuel (pièce + autres vêtements de la tenue) et ne doit jamais pénaliser globalement cette pièce dans les futures propositions.** Éviter seulement de reproposer immédiatement la même alternative dans la même séquence ; journal des retours encore à concevoir.
 4. **Profil stylistique permanent éditable**, réutilisé sans saisie répétitive.
 5. **Planches visuelles et lookbooks** à partir des vrais vêtements, intégration stable iPhone/Mac, coûts maîtrisés et fournisseur IA interchangeable.
 
