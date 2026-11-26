@@ -37,6 +37,14 @@ function role(p:Piece):string {
   }
   return "autre";
 }
+// Veste et manteau ont la même fonction de couche extérieure, mais ne
+// sont pas interchangeables automatiquement : l'IA évalue chaleur, protection
+// et harmonie de la silhouette avec le contexte météorologique disponible.
+function roleCompatible(ancien:string,candidat:string):boolean {
+  if(ancien==="manteau"||ancien==="veste")
+    return candidat==="manteau"||candidat==="veste";
+  return ancien===candidat;
+}
 const validIds=(v:unknown,max:number)=>Array.isArray(v)&&v.length>0&&v.length<=max&&v.every(x=>Number.isSafeInteger(x)&&x>0)&&new Set(v).size===v.length;
 const shown=(p:Piece)=>({
   id:p.id,nom:p.nom,role:role(p),couleur:p.couleur||"",matiere:p.matiere||"",
@@ -57,9 +65,9 @@ Promise<{id:number;conseil:string}> {
     throw new Error("IA_NON_CONFIGUREE");
   const system=[
     "Tu es le styliste exigeant de Mon Dressing. Choisis UN SEUL vêtement de remplacement uniquement parmi les candidats avec leurs IDs.",
-    "IMPORTANT : aucun autre vêtement de la tenue ne doit changer. Les candidats sont du même rôle que la pièce remplacée.",
+    "IMPORTANT : aucun autre vêtement de la tenue ne doit changer. Les candidats remplissent le même rôle vestimentaire. Une veste peut remplacer un manteau, et inversement, UNIQUEMENT si la protection selon la météo et la silhouette restent pertinentes.",
     "Priorité absolue : silhouette harmonieuse et flatteuse, morphologie en A, chic féminin contemporain, contraste maîtrisé (une seule pièce forte lorsque pertinent).",
-    "Couleurs froides préférées sans interdits absolus. Ne pas surcharger. Respecter les coupes, matières, contraintes et météo transmises si elles sont connues.",
+    "Couleurs froides préférées sans interdits absolus. Ne pas surcharger. Respecter les coupes et matières documentées. Pour une couche extérieure, comparer protection contre le froid, vent ou pluie et compatibilité avec la tenue ; ne jamais déduire une performance non documentée. Si les données météo sont des scénarios fictifs, les traiter seulement comme hypothèses du test.",
     "Les photos ne te sont pas transmises : ne prétends pas les voir. Ne crée ni vêtement ni propriété nouvelle.",
     "Si aucune candidate ne permet une association vraiment convaincante, renvoie id=0. Sinon un seul ID parmi candidats.",
     "Le conseil doit être bref, factuel et facultatif : 1 phrase, sans contrainte stricte de 40 mots. JSON uniquement."
@@ -130,12 +138,15 @@ const handler=withSupabase({auth:"user"},async(req,ctx)=>{
     const old=byId.get(replaceId)!;const oldRole=role(old);
     if(oldRole==="autre")return json({error:"Catégorie insuffisamment précise pour un remplacement fiable."},422);
     const blocked=new Set<number>([...ids,...rejected]);
-    const candidates=all.filter(p=>role(p)===oldRole&&!blocked.has(p.id));
+    const candidates=all.filter(p=>roleCompatible(oldRole,role(p))&&!blocked.has(p.id));
     if(candidates.length>120)return json({error:"Trop d'alternatives dans cette catégorie : recherche à affiner sans exclure silencieusement des vêtements."},422);
-    if(!candidates.length)return json({status:"aucune_alternative",nombre_candidats:0,message:"Aucun autre vêtement compatible dans cette catégorie."});
+    if(!candidates.length)return json({status:"aucune_alternative",nombre_candidats:0,
+      message:oldRole==="manteau"||oldRole==="veste"
+        ?"Aucune autre couche extérieure disponible (manteau ou veste)."
+        :"Aucun autre vêtement disponible pour ce rôle."});
     if(mode==="candidats"){
       return json({status:"pret",role:oldRole,nom_piece:old.nom,nombre_candidats:candidates.length,
-        information:"Diagnostic gratuit : aucun appel IA. L'harmonie n'est pas encore évaluée."});
+        information:"Diagnostic gratuit : aucun appel IA. Pour une couche extérieure, manteaux et vestes peuvent être candidats ; l'harmonie et la protection ne sont pas encore évaluées."});
     }
     const result=await chooseAI(outfit,old,candidates,input.contexte);
     if(result.id===0)return json({status:"aucune_alternative",nombre_candidats:candidates.length,message:result.conseil||"Aucune alternative satisfaisante."});
