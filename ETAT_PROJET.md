@@ -152,6 +152,20 @@ Le test B révèle un défaut de robustesse indépendant de la qualité stylisti
 
 **Prochaine vérification :** depuis le générateur du laboratoire, cliquer sur le nouveau bouton de la tenue retenue, constater le chargement direct dans l'atelier de remplacement, puis essayer un remplacement ciblé seulement si nécessaire.
 
-## 13. Prochaine action décidée
+## 13. Première interface unifiée du laboratoire — 26 novembre 2026
+
+**Statut : version de laboratoire publiée sur GitHub, validation fonctionnelle par l'utilisatrice encore nécessaire.**
+
+- `test-styles-labo.html` est devenu le point d'entrée de la **première interface unifiée** : accès aux tenues sauvegardées (gratuit) ou génération par le moteur de laboratoire (payante, sur clic), puis affichage **d'une seule tenue principale** et remplacement ciblé directement sur la même page.
+- Les commandes « Changer cette pièce », « Une autre pour cette pièce », « Garder cette pièce », « Revenir en arrière » et « Revenir à la tenue initiale » utilisent `assistant-remplacer-labo`, fonction déjà isolée et ayant donné des résultats positifs dans des essais distincts.
+- Les pièces non visées demeurent inchangées ; une alternative n'est appliquée à la composition qu'après acceptation explicite. Le refus reste limité à la même association et au même poste de remplacement. Aucun port réel n'est déduit ou sauvegardé.
+- Le diagnostic et les anciennes comparaisons restent possibles, mais l'interface ne propose qu'une tenue principale à la fois ; ses photos viennent du catalogue. Les autres résultats ne sont pas proposés comme choix simultanés.
+- **Précaution de confidentialité :** seules les références au catalogue et des consignes vestimentaires génériques sont utilisées dans les nouvelles requêtes de remplacement ; aucun transfert d'historique personnel ou médical. Contrôle automatisé d'absence de termes médicaux explicites sur le nouveau code frontend.
+- **Vérifications faites :** récupération et réécriture du fichier GitHub, analyse de syntaxe JavaScript après modification, contrôle des points d'entrée et des éléments de la page, comparaison : `index.html` de la V9 inchangé. Aucun test payant IA n'a été exécuté.
+- **Non encore validé :** parcours complet en navigateur authentifié sur la version unifiée, qualité de chaque catégorie de remplacement, expérience sur iPhone, nouveaux résultats générés par l'IA et éventuels cas d'échec réseau. Ne pas promouvoir en production avant ces tests.
+
+**Prochaine vérification :** depuis `test-styles-labo.html`, ouvrir une tenue sauvegardée sans coût, contrôler les photos, changer une pièce, puis accepter ou annuler. Utiliser une nouvelle génération payante seulement si elle présente une vraie valeur de test.
+
+## 14. Prochaine action décidée
 
 **Pas de refonte ni de test payant déclenché automatiquement.** Examiner avec l'utilisatrice la robustesse du laboratoire et les solutions techniques pour le remplacement ciblé d'une pièce et la mémoire de rotation, en se fondant sur ce document et sur les décisions produit. Prioriser l'évaluation stylistique par l'utilisatrice avant toute promotion en production.
