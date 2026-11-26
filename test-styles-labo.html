@@ -213,6 +213,24 @@ async function photosEtInventaire(body,options){
  const map=new Map((data||[]).map(p=>[p.id,p]));
  return {map,watch:(data||[]).filter(p=>/z[eé]br|vert sapin|bottine.*vert|boot.*vert|vert.*bottin/i.test([p.nom,p.couleur].join(' '))),photoError:null};
 }
+const TRANSFER_KEY='mon-dressing-labo-transfert-tenue-v1';
+function ouvrirAtelierDeRemplacement(tenue){
+ const ids=tenue?.pieces;
+ if(!Array.isArray(ids)||ids.length===0||ids.length>18||
+   ids.some(id=>!Number.isSafeInteger(id)||id<1)||new Set(ids).size!==ids.length){
+   $('result-status').textContent='Cette tenue ne peut pas être transférée : identifiants invalides.';
+   return;
+ }
+ // Transfert minimal limité au nom et aux IDs ; ni profil, ni consignes ni diagnostic.
+ try{
+   sessionStorage.setItem(TRANSFER_KEY,JSON.stringify({
+     tenue:{nom:String(tenue.nom||'Tenue du laboratoire').slice(0,120),pieces:[...ids]}
+   }));
+   window.location.assign('./test-remplacement-labo.html?source=generateur');
+ }catch(e){
+   $('result-status').textContent='Transfert impossible dans cet onglet. Utilise le chargement direct d’une tenue sauvegardée.';
+ }
+}
 function afficherLook(root,opt,inventaire){
  const card=document.createElement('article');card.className='look'+(opt.selected?' choice':'');
  card.append(textEl('span',opt.selected?'Tenue retenue après comparaison':'Alternative '+(opt.originalIndex+1),'tag'));
@@ -229,6 +247,13 @@ function afficherLook(root,opt,inventaire){
  card.append(details);
  }else{
  card.append(textEl('p','Motifs détaillés veste/sac : non renvoyés pour la tenue gagnante dans cette V2.','small'));
+ }
+ if(opt.selected && ids.length){
+  const btn=textEl('button','Changer une pièce de cette tenue');
+  btn.className='secondary';
+  btn.style.marginTop='10px';
+  btn.onclick=()=>ouvrirAtelierDeRemplacement(opt.tenue);
+  card.append(btn);
  }
  root.append(card);
 }
