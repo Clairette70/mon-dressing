@@ -12,7 +12,7 @@ p{margin:8px 0}a{color:var(--wine)}.small{font-size:13px;color:var(--muted)}
 .notice{background:#f3edf2;border-radius:10px;padding:11px;white-space:pre-wrap;overflow-wrap:anywhere}
 button{border:0;border-radius:9px;padding:10px 14px;background:var(--wine);color:#fff;font:600 14px system-ui;cursor:pointer}
 button:disabled{opacity:.5;cursor:default}.secondary{background:#f1e9ef;color:var(--wine);border:1px solid #d9c6d4}
-input,textarea{width:100%;padding:10px;border:1px solid #d6c9d2;border-radius:8px;font:inherit}
+input,textarea,select{width:100%;padding:10px;border:1px solid #d6c9d2;border-radius:8px;font:inherit}
 textarea{min-height:110px;font:12px/1.5 monospace;resize:vertical}
 .controls{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;align-items:center}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px}
@@ -44,12 +44,21 @@ details summary{cursor:pointer;font-weight:600;padding:8px 0}
 </section>
 <section class="panel">
 <h2>2. Charger une tenue existante</h2>
+<p class="small">Choisis directement une tenue déjà sauvegardée dans ton dressing. Pas besoin de JSON et aucun appel IA payant.</p>
+<div class="controls" style="align-items:end">
+<label style="flex:1;min-width:210px" for="saved-look">Tenues enregistrées
+<select id="saved-look" disabled><option value="">Connexion requise…</option></select></label>
+<button id="load-saved" disabled>Ouvrir cette tenue</button>
+<button id="refresh-saved" class="secondary" disabled>Actualiser la liste</button>
+</div>
+<p id="saved-feedback" class="small" aria-live="polite"></p>
+<details><summary>Autres méthodes de chargement (résultat du laboratoire ou JSON)</summary>
 <div class="controls"><button id="restore" class="secondary">Reprendre le dernier résultat du laboratoire</button>
 <button id="parse-json" class="secondary">Charger le JSON collé</button></div>
 <details><summary>Importer une tenue depuis un résultat JSON (sans appel IA)</summary>
 <p class="small">Copier le résultat complet depuis « Détails techniques » du laboratoire V2.2, puis cliquer sur « Charger le JSON collé ».</p>
 <textarea id="source-json" placeholder='{"tenue":{"pieces":[...]},...}'></textarea>
-</details>
+</details></details>
 <p id="source-info" class="small">Aucune tenue chargée.</p>
 </section>
 <section class="panel">
@@ -78,10 +87,11 @@ const URL_SUPABASE="https://vidypbmhsdjacjrxeqlr.supabase.co";
 const KEY_SUPABASE="sb_publishable_Mt_Wtn1lLTPYOb5Sh2PH3A_5GdD3yRd";
 const db=window.supabase.createClient(URL_SUPABASE,KEY_SUPABASE);
 const $=id=>document.getElementById(id);
-let ready=false,busy=false,catalogue=new Map(),initial=null,actuel=null,pending=null,rejected=new Map(),requestContext={};
+let ready=false,busy=false,catalogue=new Map(),initial=null,actuel=null,pending=null,rejected=new Map(),requestContext={},savedLooks=[];
 const SESSION_KEY="mon-dressing-labo-v2-dernier-resultat";
 function report(s){$('action-info').textContent=s}
 function lock(on){busy=on;$('diagnostic-button').disabled=on||!ready;$('login-button').disabled=on;$('restore').disabled=on;$('parse-json').disabled=on;
+$('saved-look').disabled=on||!ready||savedLooks.length===0;$('load-saved').disabled=on||!ready||!$('saved-look').value;$('refresh-saved').disabled=on||!ready;
 document.querySelectorAll('.piece button').forEach(b=>b.disabled=on||!ready);
 for(const id of ['accept','another','cancel'])$(id).disabled=on;
 $('reset').disabled=on||!initial;}
@@ -91,6 +101,7 @@ const {data,error}=await db.auth.getSession();
 ready=!error&&Boolean(data.session);
 $('auth-info').textContent=ready?'Connectée à Mon Dressing.':'Connecte-toi avec ton compte Mon Dressing.';
 $('login-fields').classList.toggle('hidden',ready);lock(false);
+if(ready)await refreshSavedLooks();
 }
 $('login-button').onclick=async()=>{
 lock(true);
@@ -136,6 +147,45 @@ try{
  await render();report('Choisis la pièce à changer. Les autres resteront inchangées.');
 }finally{lock(false)}
 }
+
+async function refreshSavedLooks(){
+if(!ready||busy)return;
+$('saved-feedback').textContent='Chargement des tenues enregistrées…';
+$('refresh-saved').disabled=true;
+try{
+ const {data,error}=await db.from('tenues')
+   .select('id,nom,pieces,occasion,created_at')
+   .order('created_at',{ascending:false}).limit(100);
+ if(error)throw error;
+ savedLooks=(data||[]).filter(row=>Array.isArray(row.pieces)&&row.pieces.length>0);
+ const sel=$('saved-look'),previous=sel.value;
+ sel.replaceChildren(new Option('Choisir une tenue…',''));
+ for(const look of savedLooks){
+   const label=[look.nom||'Tenue '+look.id,look.occasion||''].filter(Boolean).join(' · ');
+   sel.add(new Option(label,String(look.id)));
+ }
+ if(savedLooks.some(x=>String(x.id)===previous))sel.value=previous;
+ $('saved-feedback').textContent=savedLooks.length
+   ? savedLooks.length+' tenue(s) enregistrée(s) disponibles. Sélectionne une tenue puis ouvre-la.'
+   : 'Aucune tenue enregistrée. Tu peux toujours utiliser un résultat JSON du laboratoire.';
+}catch(e){
+ savedLooks=[];$('saved-look').replaceChildren(new Option('Liste indisponible',''));
+ $('saved-feedback').textContent='Impossible de charger la liste : '+(e?.message||String(e))+'. Tu peux encore coller un JSON.';
+}finally{lock(false)}
+}
+$('saved-look').addEventListener('change',()=>{$('load-saved').disabled=busy||!ready||!$('saved-look').value});
+$('refresh-saved').onclick=()=>refreshSavedLooks();
+$('load-saved').onclick=async()=>{
+ if(!ready||busy)return;
+ const id=$('saved-look').value;
+ const found=savedLooks.find(x=>String(x.id)===id);
+ if(!found){$('saved-feedback').textContent='Choisis une tenue enregistrée.';return;}
+ try{
+   // Vérification des pièces en lecture seule dans loadLook, avec leurs photos.
+   await loadLook(JSON.stringify({tenue:{nom:found.nom||'Ma tenue',pieces:found.pieces}}));
+   $('saved-feedback').textContent='Tenue chargée. Tu peux maintenant changer une pièce.';
+ }catch(e){$('saved-feedback').textContent='Chargement impossible : '+(e?.message||String(e))}
+};
 $('restore').onclick=async()=>{try{const raw=sessionStorage.getItem(SESSION_KEY);if(!raw)throw Error('Aucun résultat dans cet onglet : colle un JSON depuis le laboratoire.');await loadLook(raw)}catch(e){$('source-info').textContent=e.message;}};
 $('parse-json').onclick=async()=>{try{await loadLook($('source-json').value.trim())}catch(e){$('source-info').textContent=e.message;}};
 function card(p,id,withButton=true){
