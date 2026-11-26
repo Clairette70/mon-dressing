@@ -116,6 +116,21 @@ Le test B révèle un défaut de robustesse indépendant de la qualité stylisti
 
 **Avant migration :** déterminer explicitement le moment où un port devient effectif, prévoir une clé d'idempotence stable et une stratégie de suppression/rectification des événements et de rétention des données ; tester avec la session réelle du client et vérifier les alertes Supabase existantes.
 
-## 10. Prochaine action décidée
+## 10. Premier atelier « Changer cette pièce » — 26 novembre 2026
+
+**Statut : prototype distinct créé, non encore essayé par l'utilisatrice ni approuvé pour la V9.**
+
+- **Code isolé** : `laboratoire/remplacement/index.ts` dans GitHub ; Edge Function Supabase `assistant-remplacer-labo` version 1 (ACTIVE, vérification JWT activée), distincte de `assistant-style-labo` V2.2 et de `assistant-style` V9.
+- **Page distincte** : [test-remplacement-labo.html](test-remplacement-labo.html) ; JavaScript analysé sans erreur de syntaxe. Le service GitHub Pages peut nécessiter un délai de publication ; sa disponibilité publique et les essais sur iPhone restent à vérifier.
+- Reprise d'un résultat JSON déjà généré via `sessionStorage` (même onglet/origine) ou collage manuel, **sans nouvelle génération de tenue**.
+- Sur une tenue déjà affichée, bouton « Changer cette pièce », une seule alternative proposée par l'IA et photo issue du catalogue réel ; boutons « Garder », « Une autre pour cette pièce », « Revenir en arrière », remise à zéro de la tenue.
+- **Contrôle côté serveur** : utilisateur autorisé, catalogue sous RLS, IDs existants, candidat d'un rôle équivalent, exclusion des autres articles et des propositions déjà refusées dans la séquence, aucun autre ID ne change, aucune sauvegarde des tenues.
+- **Coût** : modes diagnostic gratuits, `remplacer` = un appel IA au maximum par clic ; le choix peut être facturé même si aucune alternative satisfaisante n'est trouvée.
+- **Contrôles effectués** : déploiement Supabase ACTIVE, publication du code GitHub, compilation du script navigateur avec analyse de syntaxe. **Non effectués** : appel IA authentifié, test effectif du résultat sur une vraie tenue, contrôle de toutes les catégories et test iPhone.
+- **Aucun changement** de `index.html`, `assistant-style`, `assistant-style-labo` ou des tables existantes. L'historique de rotation n'est pas encore installé.
+
+**Prochaine validation produit :** faire reprendre un résultat déjà obtenu, remplacer une pièce et juger la cohérence de l'alternative. Si le mécanisme est fiable et utile, seulement ensuite concevoir sa promotion vers la V9.
+
+## 11. Prochaine action décidée
 
 **Pas de refonte ni de test payant déclenché automatiquement.** Examiner avec l'utilisatrice la robustesse du laboratoire et les solutions techniques pour le remplacement ciblé d'une pièce et la mémoire de rotation, en se fondant sur ce document et sur les décisions produit. Prioriser l'évaluation stylistique par l'utilisatrice avant toute promotion en production.
