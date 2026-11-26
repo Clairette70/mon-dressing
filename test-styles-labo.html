@@ -173,7 +173,7 @@ const meteoFictive={
 meteoFictive.J={...meteoFictive.G};
 let connected=false,busy=false,preflight=false,latestD=null;
 let savedOutfits=[],lookBase=null,lookCurrent=null,lookOption=null,lookPhotos=new Map();
-let replacementPending=null,refusContext=new Map(),lookResultToken=0;
+let replacementPending=null,refusContext=new Map(),lookResultToken=0,lookMeteo=null;
 function localDate(){const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');}
 function updateButtons(){
  $('diagnostic-button').disabled=!connected||busy;
@@ -324,7 +324,7 @@ function construireDemande(test){
 function enregistrerDernierResultat(body,statut=200){
  try{sessionStorage.setItem('mon-dressing-labo-v2-dernier-resultat',JSON.stringify({http_status:statut,...body}));}catch(_e){}
 }
-async function afficherReponse(body,origine){
+async function afficherReponse(body,origine,meteoTest=null){
  if(!Array.isArray(body?.tenue?.pieces))throw new Error('Cette réponse ne contient pas une tenue exploitable.');
  const options=optionsDansOrdre(body);
  const selected=options.find(o=>o.selected)||options[0];
@@ -334,6 +334,13 @@ async function afficherReponse(body,origine){
   throw new Error('La tenue contient des identifiants invalides ou dupliqués.');
  const token=++lookResultToken;
  lookBase=[...ids];lookCurrent=[...ids];lookOption=selected;
+ lookMeteo=meteoTest&&typeof meteoTest==="object"&&!Array.isArray(meteoTest)?{
+  conditions:String(meteoTest.conditions||"").slice(0,80),
+  temperature_max_c:Number.isFinite(meteoTest.temperature_max_c)?meteoTest.temperature_max_c:null,
+  pluie_probabilite_max_pct:Number.isFinite(meteoTest.pluie_probabilite_max_pct)?meteoTest.pluie_probabilite_max_pct:null,
+  vent_max_kmh:Number.isFinite(meteoTest.vent_max_kmh)?meteoTest.vent_max_kmh:null,
+  simulation:true
+ }:null;
  lookPhotos=new Map();replacementPending=null;refusContext.clear();
  $('looks').replaceChildren();$('audit').replaceChildren();$('context-info').replaceChildren();
  $('adjust-section').hidden=false;
@@ -432,7 +439,7 @@ async function rechercherUnePiece(){
  try{
   const answer=await appelerRemplacement({
    tenue_pieces:oldIds,piece_a_remplacer:request.baseId,
-   ids_deja_refuses:[...refused],contexte:{source:'laboratoire_unifie'}
+   ids_deja_refuses:[...refused],contexte:{source:'laboratoire_unifie',meteo:lookMeteo}
   });
   if(answer.status==='aucune_alternative'){
    $('adjust-status').textContent=answer.message||'Aucune alternative satisfaisante.';
@@ -518,7 +525,7 @@ async function lancer(test){
    if(!r.ok)throw new Error('HTTP '+r.status+' — '+(r.body.code||'')+' '+(r.body.error||'Génération impossible'));
    if(!r.body.tenue?.pieces)throw new Error('La réponse ne contient pas de tenue exploitable.');
    enregistrerDernierResultat(r.body,r.status);
-   await afficherReponse(r.body,'Test '+test+' réussi');
+   await afficherReponse(r.body,'Test '+test+' réussi',demande.ignorer_meteo?null:demande.meteo);
    if(test==='D')latestD=[...r.body.tenue.pieces];
  }catch(e){$('result-status').textContent='Erreur : '+e.message+' — ouvre « Détails techniques » et envoie-moi une capture.';}
  finally{busy=false;updateButtons();}
