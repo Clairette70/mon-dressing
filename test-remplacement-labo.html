@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="fr"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mon Dressing — Atelier Changer cette pièce · Laboratoire</title>
+<style>
+:root{--wine:#654158;--bg:#f9f6f7;--ink:#302b35;--muted:#716674;--line:#e8dfe6}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,Arial,sans-serif}
+main{max-width:950px;margin:auto;padding:20px}h1,h2,h3{font-family:Georgia,serif;font-weight:normal;line-height:1.2}
+h1{font-size:30px;margin:6px 0}h2{font-size:22px;margin:0 0 8px}h3{font-size:18px;margin:8px 0}
+p{margin:8px 0}a{color:var(--wine)}.small{font-size:13px;color:var(--muted)}
+.panel{background:#fff;border:1px solid var(--line);border-radius:15px;padding:18px;margin:15px 0}
+.notice{background:#f3edf2;border-radius:10px;padding:11px;white-space:pre-wrap;overflow-wrap:anywhere}
+button{border:0;border-radius:9px;padding:10px 14px;background:var(--wine);color:#fff;font:600 14px system-ui;cursor:pointer}
+button:disabled{opacity:.5;cursor:default}.secondary{background:#f1e9ef;color:var(--wine);border:1px solid #d9c6d4}
+input,textarea{width:100%;padding:10px;border:1px solid #d6c9d2;border-radius:8px;font:inherit}
+textarea{min-height:110px;font:12px/1.5 monospace;resize:vertical}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;align-items:center}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px}
+.piece{border:1px solid var(--line);border-radius:11px;padding:9px;min-width:0;background:#fff}
+.piece img{display:block;width:100%;height:160px;object-fit:contain;background:#fff}
+.piece strong{display:block;font-size:13px;overflow-wrap:anywhere;min-height:36px;margin-top:8px}
+.piece .role{font-size:12px;color:var(--muted)}.piece button{width:100%;margin-top:7px}
+.piece.changed{border:2px solid var(--wine)}.badge{font-size:11px;font-weight:650;color:var(--wine)}
+.hidden{display:none!important}.warning{color:#8e4525;font-size:13px;white-space:pre-wrap}
+#alternative-card{border:1px solid var(--wine);border-radius:12px;padding:15px;background:#fcf9fb}
+.details pre{white-space:pre-wrap;word-break:break-word;max-height:250px;overflow:auto}
+details summary{cursor:pointer;font-weight:600;padding:8px 0}
+@media(max-width:600px){main{padding:12px}h1{font-size:25px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style></head>
+<body><main>
+<p class="small"><a href="./test-styles-labo.html">Laboratoire V2.2</a> · Prototype indépendant, sans modifier la V9</p>
+<h1>Changer cette pièce</h1>
+<p>Une seule alternative choisie par l'IA. Les autres vêtements ne bougent pas. Rien n'est enregistré automatiquement.</p>
+<section class="panel">
+<h2>1. Connexion</h2>
+<p id="auth-info" class="notice">Vérification…</p>
+<div id="login-fields" class="hidden">
+<div class="grid"><label>E-mail Mon Dressing<input id="email" type="email" autocomplete="username"></label>
+<label>Mot de passe<input id="password" type="password" autocomplete="current-password"></label></div>
+<div class="controls"><button id="login-button">Se connecter</button></div>
+</div>
+<div class="controls"><button id="diagnostic-button" class="secondary" disabled>Vérifier sans frais</button></div>
+<p id="diag-info" class="small">Diagnostic gratuit. Les demandes de remplacement déclenchent un appel IA payant.</p>
+</section>
+<section class="panel">
+<h2>2. Charger une tenue existante</h2>
+<div class="controls"><button id="restore" class="secondary">Reprendre le dernier résultat du laboratoire</button>
+<button id="parse-json" class="secondary">Charger le JSON collé</button></div>
+<details><summary>Importer une tenue depuis un résultat JSON (sans appel IA)</summary>
+<p class="small">Copier le résultat complet depuis « Détails techniques » du laboratoire V2.2, puis cliquer sur « Charger le JSON collé ».</p>
+<textarea id="source-json" placeholder='{"tenue":{"pieces":[...]},...}'></textarea>
+</details>
+<p id="source-info" class="small">Aucune tenue chargée.</p>
+</section>
+<section class="panel">
+<h2>3. Ta tenue</h2>
+<p id="look-heading" class="small">Charge d'abord une tenue pour afficher tes vrais vêtements.</p>
+<div id="look-grid" class="grid"></div>
+<div id="alternative-card" class="hidden">
+<h3>Nouvelle pièce proposée</h3>
+<div id="alternative-grid" class="grid"></div>
+<p id="advice"></p>
+<div class="controls">
+<button id="accept">Garder cette pièce</button>
+<button id="another" class="secondary">Une autre pour cette pièce</button>
+<button id="cancel" class="secondary">Revenir en arrière</button>
+</div></div>
+<p id="action-info" class="notice">Choisis « Changer cette pièce » sous le vêtement concerné.</p>
+<div class="controls"><button id="reset" class="secondary" disabled>Revenir à la tenue initiale</button></div>
+<p class="small">Une demande de remplacement est payante, même si aucune alternative satisfaisante n'est trouvée. Le diagnostic et le chargement du JSON ne le sont pas.</p>
+</section>
+<details class="panel details"><summary>Diagnostic technique</summary><pre id="debug">—</pre></details>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+"use strict";
+const URL_SUPABASE="https://vidypbmhsdjacjrxeqlr.supabase.co";
+const KEY_SUPABASE="sb_publishable_Mt_Wtn1lLTPYOb5Sh2PH3A_5GdD3yRd";
+const db=window.supabase.createClient(URL_SUPABASE,KEY_SUPABASE);
+const $=id=>document.getElementById(id);
+let ready=false,busy=false,catalogue=new Map(),initial=null,actuel=null,pending=null,rejected=new Map(),requestContext={};
+const SESSION_KEY="mon-dressing-labo-v2-dernier-resultat";
+function report(s){$('action-info').textContent=s}
+function lock(on){busy=on;$('diagnostic-button').disabled=on||!ready;$('login-button').disabled=on;$('restore').disabled=on;$('parse-json').disabled=on;
+document.querySelectorAll('.piece button').forEach(b=>b.disabled=on||!ready);
+for(const id of ['accept','another','cancel'])$(id).disabled=on;
+$('reset').disabled=on||!initial;}
+function displayText(el,text){const n=document.createElement(el);n.textContent=text;return n}
+async function auth(){
+const {data,error}=await db.auth.getSession();
+ready=!error&&Boolean(data.session);
+$('auth-info').textContent=ready?'Connectée à Mon Dressing.':'Connecte-toi avec ton compte Mon Dressing.';
+$('login-fields').classList.toggle('hidden',ready);lock(false);
+}
+$('login-button').onclick=async()=>{
+lock(true);
+try{const {error}=await db.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error)throw error;
+$('password').value='';await auth();
+}catch(e){$('auth-info').textContent='Connexion impossible : '+e.message;lock(false)}};
+async function call(mode,data={}){
+const {data:authData,error}=await db.auth.getSession();if(error||!authData.session)throw Error('Session expirée : reconnecte-toi.');
+const response=await fetch(URL_SUPABASE+'/functions/v1/assistant-remplacer-labo',{
+method:'POST',headers:{'Content-Type':'application/json','apikey':KEY_SUPABASE,'Authorization':'Bearer '+authData.session.access_token},
+body:JSON.stringify({mode,...data})});
+const payload=await response.json().catch(()=>({error:'Réponse illisible.'}));
+$('debug').textContent=JSON.stringify({status:response.status,...payload},null,2);
+if(!response.ok)throw Error(payload.error||('Erreur HTTP '+response.status));
+return payload;
+}
+$('diagnostic-button').onclick=async()=>{
+lock(true);
+try{const x=await call('diagnostic');$('diag-info').textContent='Prêt : '+x.nombre_pieces+' vêtements accessibles. '+(x.fournisseur_configure?'IA de laboratoire configurée.':'IA non configurée.')+' Aucun appel payant.';}
+catch(e){$('diag-info').textContent='Diagnostic impossible : '+e.message;}
+finally{lock(false)}};
+function getLook(json){
+if(!json||typeof json!=='object')throw Error('Résultat JSON invalide.');
+const obj=json.tenue?.pieces?json.tenue:json.selection?.tenue?.pieces?json.selection.tenue:null;
+if(!obj||!Array.isArray(obj.pieces)||!obj.pieces.length||obj.pieces.some(x=>!Number.isSafeInteger(x)))throw Error('Ce JSON ne contient pas une tenue exploitable.');
+if(new Set(obj.pieces).size!==obj.pieces.length)throw Error('La tenue contient des pièces répétées.');
+if(obj.pieces.length>18)throw Error('Tenue anormalement longue.');
+return {ids:[...obj.pieces],nom:String(obj.nom||'Tenue du laboratoire')};
+}
+async function loadLook(raw){
+let parsed;try{parsed=JSON.parse(raw)}catch{throw Error('Le JSON fourni est invalide.');}
+if(parsed.http_status!==undefined&&parsed.http_status!==200)throw Error('Ce résultat provient d’un test échoué.');
+const look=getLook(parsed);
+lock(true);
+try{
+ const {data,error}=await db.from('vêtements').select('id,nom,categorie,sous_categorie,couleur,photo_url').in('id',look.ids);
+ if(error)throw error;
+ catalogue=new Map((data||[]).map(p=>[p.id,p]));
+ if(look.ids.some(id=>!catalogue.has(id)))throw Error('Une pièce de cette tenue n’existe plus dans ton dressing.');
+ initial=[...look.ids];actuel=[...look.ids];pending=null;rejected=new Map();requestContext={source:'laboratoire',nom:look.nom};
+ $('look-heading').textContent=look.nom;
+ $('source-info').textContent='Tenue chargée gratuitement : '+look.ids.length+' pièces. Sélectionne celle à remplacer.';
+ await render();report('Choisis la pièce à changer. Les autres resteront inchangées.');
+}finally{lock(false)}
+}
+$('restore').onclick=async()=>{try{const raw=sessionStorage.getItem(SESSION_KEY);if(!raw)throw Error('Aucun résultat dans cet onglet : colle un JSON depuis le laboratoire.');await loadLook(raw)}catch(e){$('source-info').textContent=e.message;}};
+$('parse-json').onclick=async()=>{try{await loadLook($('source-json').value.trim())}catch(e){$('source-info').textContent=e.message;}};
+function card(p,id,withButton=true){
+const el=displayText('article','');el.className='piece';
+if(initial&&!initial.includes(id))el.classList.add('changed');
+const image=document.createElement('img');image.loading='lazy';image.alt=p?.nom||'Vêtement';if(p?.photo_url)image.src=p.photo_url;el.append(image);
+el.append(displayText('strong',p?.nom||'Pièce '+id));
+el.append(displayText('span',p?.categorie||''));el.lastChild.className='role';
+if(withButton){const btn=displayText('button','Changer cette pièce');btn.disabled=busy||!ready;btn.onclick=()=>beginReplace(id);el.append(btn);}
+return el;
+}
+async function getMissingPhoto(id){
+if(catalogue.has(id))return catalogue.get(id);
+const {data,error}=await db.from('vêtements').select('id,nom,categorie,sous_categorie,couleur,photo_url').eq('id',id).single();
+if(error||!data)throw Error('Photo ou vêtement indisponible.');
+catalogue.set(id,data);return data;
+}
+async function render(){
+$('look-grid').replaceChildren();
+for(const id of actuel||[])$('look-grid').append(card(catalogue.get(id),id));
+$('alternative-card').classList.toggle('hidden',!pending);
+$('reset').disabled=busy||!initial;
+}
+const retryKey=()=>JSON.stringify({other:actuel?.slice().sort((a,b)=>a-b),target:pending?.baseId});
+async function beginReplace(id){
+if(!ready||busy||!actuel?.includes(id))return;
+if(pending){report('Confirme ou annule la pièce actuellement proposée avant d’en changer une autre.');return;}
+pending={baseId:id,other:actuel.filter(x=>x!==id),item:null};
+await search(false);
+}
+async function search(more){
+if(!pending||busy)return;
+const p=pending;const before=[...actuel];
+const key=JSON.stringify({base:p.baseId,other:p.other.slice().sort((a,b)=>a-b)});
+const refused=rejected.get(key)||new Set();
+lock(true);report('Le styliste examine les alternatives. Un appel IA peut être facturé.');
+try{
+const x=await call('remplacer',{tenue_pieces:before,piece_a_remplacer:p.baseId,ids_deja_refuses:[...refused],contexte:requestContext});
+if(x.status==='aucune_alternative'){report('Aucune autre pièce satisfaisante : '+x.message);if(!p.item)pending=null;return;}
+if(x.status!=='remplacement_propose'||!Number.isSafeInteger(x.nouvelle_piece_id))throw Error('Réponse incomplète.');
+if(!Array.isArray(x.tenue_pieces)||x.tenue_pieces.length!==before.length||x.tenue_pieces.filter((id,i)=>id!==before[i]).length!==1
+  ||x.tenue_pieces.some((id,i)=>before[i]!==p.baseId&&id!==before[i]))throw Error('Les autres pièces ont changé : proposition refusée.');
+const item=await getMissingPhoto(x.nouvelle_piece_id);
+p.item=item;p.conseil=x.conseil||'';
+$('alternative-grid').replaceChildren(card(item,item.id,false));
+$('advice').textContent=p.conseil;
+$('alternative-card').classList.remove('hidden');
+report('Une nouvelle pièce est proposée. Garde-la, demande une autre ou annule.');
+}catch(e){report('Remplacement impossible : '+e.message);if(!p.item)pending=null;}
+finally{lock(false);await render()}
+}
+$('another').onclick=async()=>{
+if(!pending?.item)return;
+const p=pending,key=JSON.stringify({base:p.baseId,other:p.other.slice().sort((a,b)=>a-b)});
+if(!rejected.has(key))rejected.set(key,new Set());
+rejected.get(key).add(p.item.id);
+const old=p.item;await search(true);
+if(pending&&pending.item===old)report('Aucune meilleure alternative trouvée ; tu peux garder la proposition précédente ou revenir en arrière.');
+};
+$('accept').onclick=async()=>{
+if(!pending?.item)return;
+actuel=actuel.map(id=>id===pending.baseId?pending.item.id:id);pending=null;
+$('alternative-card').classList.add('hidden');
+await render();report('Remplacement accepté sur la planche. Rien n’a été enregistré dans le dressing.');
+};
+$('cancel').onclick=async()=>{pending=null;$('alternative-card').classList.add('hidden');await render();report('Remplacement annulé. La tenue reste inchangée.');};
+$('reset').onclick=async()=>{if(!initial)return;actuel=[...initial];pending=null;rejected.clear();await render();report('Tenue initiale restaurée.');};
+auth();
+</script></body></html>
