@@ -61,7 +61,14 @@ L'expérience visée : ouvrir l'application sur iPhone ou Mac, renseigner quelqu
 - Un bref signalement suffit lorsqu'une protection est incertaine. La météo reste un **contexte**, pas la raison d'être de l'application.
 - L'utilisatrice peut choisir d'ignorer la météo.
 
-## 6. Gouvernance du projet
+## 6. Limite de confidentialité du profil
+
+- **Aucune donnée de santé, de traitement, de diagnostic ou d'historique médical** ne doit être intégrée aux consignes des modèles, au profil stylistique, au code, à la documentation ou aux journaux de Mon Dressing sans demande spécifique et accord explicite de l'utilisatrice.
+- Ne pas déduire une contrainte vestimentaire à partir d'informations personnelles issues d'autres conversations. Les préférences utilisées par l'application doivent être des choix de style explicitement formulés pour Mon Dressing.
+- Le ressenti thermique peut être demandé au jour le jour en termes vestimentaires génériques ; ne pas en inférer une origine médicale.
+- Avant déploiement, vérifier les consignes serveur et le frontend. Cette règle s'applique aussi aux futurs essais et aux fournisseurs d'IA interchangeables.
+
+## 7. Gouvernance du projet
 
 **L'utilisatrice reste décisionnaire de la direction artistique et des orientations produit.**
 
@@ -72,7 +79,7 @@ L'expérience visée : ouvrir l'application sur iPhone ou Mac, renseigner quelqu
 - Préserver la **V9** en production ; expérimenter dans la fonction de laboratoire indépendante.
 - Coûts maîtrisés, stabilité iPhone/Mac, sauvegardes et fournisseur IA interchangeable.
 
-## 7. État du projet lors de cette décision
+## 8. État du projet lors de cette décision
 
 - **V9 :** application conservée et fonctionnelle.
 - **Laboratoire V2.2 :** génération et comparaison de tenues expérimentales, sur environ 50 pièces.
@@ -80,7 +87,7 @@ L'expérience visée : ouvrir l'application sur iPhone ou Mac, renseigner quelqu
 - **Test B :** erreur HTTP 422 liée à un texte de conseils trop long dans l'option 3 ; on ne peut pas en déduire la qualité esthétique de la génération rejetée.
 - **À concevoir / intégrer :** remplacement ciblé d'une pièce, historique de rotation, confirmation des vêtements réellement portés, profil stylistique permanent modifiable, planches et lookbooks aboutis.
 
-## 8. Priorités de réalisation
+## 9. Priorités de réalisation
 
 1. Conserver ce cap dans toute décision future.
 2. **Valider le cœur stylistique** sur un échantillon représentatif selon la qualité réellement portée, sans multiplier les tests payants.
