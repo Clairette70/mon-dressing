@@ -1,6 +1,14 @@
 -- PROPOSITION NON APPLIQUÉE : historique de rotation de Mon Dressing
 -- Date : 24 novembre 2026
--- STATUT : CONCEPTION, PAS UNE MIGRATION APPLIQUÉE.
+-- STATUT : CONCEPTION VALIDÉE PAR TESTS RÉVERSIBLES, PAS UNE MIGRATION APPLIQUÉE.
+-- Test du 26 novembre 2026 : tables équivalentes créées dans un schéma temporaire,
+-- contrôles de contraintes, unicité et isolation entre identités simulées,
+-- le tout annulé explicitement par ROLLBACK. Aucun objet conservé.
+-- Attention : les accès anon par API, les scénarios complets à deux vrais comptes,
+-- les événements métier, les sauvegardes et la double soumission client
+-- restent à tester avant une application durable.
+-- Correction issue du test : DEFAULT auth.uid() (et non DEFAULT (select auth.uid()),
+-- forme refusée par PostgreSQL).
 -- Après validation du modèle de données, utiliser le mécanisme de migrations Supabase.
 -- Ne pas exécuter ce fichier sans sauvegarde et validation explicite.
 --
@@ -13,7 +21,7 @@ begin;
 
 create table public.labo_sessions (
     id uuid primary key default gen_random_uuid(),
-    user_id uuid not null default (select auth.uid())
+    user_id uuid not null default auth.uid()
        references auth.users(id) on delete cascade,
     created_at timestamptz not null default now(),
     request_context jsonb not null default '{}'::jsonb,
@@ -25,7 +33,7 @@ create table public.labo_sessions (
 create table public.labo_evenements (
     id uuid primary key default gen_random_uuid(),
     session_id uuid not null,
-    user_id uuid not null default (select auth.uid())
+    user_id uuid not null default auth.uid()
        references auth.users(id) on delete cascade,
     created_at timestamptz not null default now(),
     type_evenement text not null check (type_evenement in (
