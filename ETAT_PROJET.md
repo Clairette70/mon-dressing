@@ -106,6 +106,16 @@ Le test B révèle un défaut de robustesse indépendant de la qualité stylisti
 
 **Ne pas traiter ces alertes comme corrigées.** Ne pas appliquer la proposition SQL sur le projet principal tant que les tests et la stratégie d'intégration n'ont pas été validés.
 
-## 9. Prochaine action décidée
+## 9. Contrôle réversible de l'historique — 26 novembre 2026
+
+**Résultat technique :** les deux tables proposées ont été recréées dans un schéma temporaire et testées dans une **transaction annulée par ROLLBACK**. Tests réussis : création des tables et index, contraintes JSON, clé étrangère composite de propriété de session, refus d'un événement à identifiant dupliqué, lecture autorisée pour le propriétaire, invisibilité des données sous une autre identité simulée, refus d'insertion sous une autre identité et absence de privilèges UPDATE/DELETE pour le rôle `authenticated`. **Le schéma de test a disparu après annulation, résultat vérifié.**
+
+**Erreur trouvée et corrigée :** `DEFAULT (select auth.uid())` provoquait une erreur SQL ; remplacer par `DEFAULT auth.uid()`. Correction conservée dans `sql/PROPOSITION_historique_rotation_NON_APPLIQUE.sql`.
+
+**Limites :** la vérification s'est faite sur le projet principal, mais dans une transaction temporaire annulée. Elle ne constitue pas un test complet depuis deux vrais comptes et ne démontre ni l'absence de doublons métier au double clic, ni l'exposition Data API, ni la fiabilité des journaux `port_annule`, ni l'intégration à l'interface. **Aucune table de rotation n'a été créée de façon permanente et aucune fonction V9 n'a été modifiée.**
+
+**Avant migration :** déterminer explicitement le moment où un port devient effectif, prévoir une clé d'idempotence stable et une stratégie de suppression/rectification des événements et de rétention des données ; tester avec la session réelle du client et vérifier les alertes Supabase existantes.
+
+## 10. Prochaine action décidée
 
 **Pas de refonte ni de test payant déclenché automatiquement.** Examiner avec l'utilisatrice la robustesse du laboratoire et les solutions techniques pour le remplacement ciblé d'une pièce et la mémoire de rotation, en se fondant sur ce document et sur les décisions produit. Prioriser l'évaluation stylistique par l'utilisatrice avant toute promotion en production.
