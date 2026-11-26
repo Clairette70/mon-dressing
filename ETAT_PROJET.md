@@ -129,7 +129,9 @@ Le test B révèle un défaut de robustesse indépendant de la qualité stylisti
 - **Contrôles effectués** : déploiement Supabase ACTIVE, publication du code GitHub, compilation du script navigateur avec analyse de syntaxe. **Non effectués** : appel IA authentifié, test effectif du résultat sur une vraie tenue, contrôle de toutes les catégories et test iPhone.
 - **Aucun changement** de `index.html`, `assistant-style`, `assistant-style-labo` ou des tables existantes. L'historique de rotation n'est pas encore installé.
 
-**Prochaine validation produit :** faire reprendre un résultat déjà obtenu, remplacer une pièce et juger la cohérence de l'alternative. Si le mécanisme est fiable et utile, seulement ensuite concevoir sa promotion vers la V9.
+**Premier essai utilisateur réel — 26 novembre 2026 :** tenue enregistrée « Pervenche & noir — chic urbain » (blouse bleu pervenche ID 20, pantalon palazzo noir ID 9, mocassins noirs pointus ID 12), chargée via JSON fourni à partir de Supabase. L'utilisatrice confirme que le remplacement a fonctionné : **blouse bleue → blouse verte**. Son évaluation visuelle : **« le résultat me paraît bien »**. C'est **un avis stylistique positif sur un seul exemple**, pas encore une validation de fiabilité générale, ni une preuve de l'expérience complète « Une autre » / annulation / toutes catégories. Pas de sauvegarde ni de port réel déduit du test.
+
+**Prochaine validation produit :** tester « Une autre pour cette pièce » sans répétition, puis « Revenir en arrière », et au moins un remplacement de chaussures ou de sac. Conserver la distinction entre succès technique, avis esthétique et validation globale avant promotion en V9.
 
 ## 11. Prochaine action décidée
 
