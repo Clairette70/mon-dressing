@@ -141,6 +141,17 @@ Le test B révèle un défaut de robustesse indépendant de la qualité stylisti
 
 **Prochaine vérification :** sur une tenue chargée directement, essayer le remplacement des mocassins (ou d'une autre paire de chaussures), puis contrôler la cohérence de la proposition, « Une autre pour cette pièce » et le retour arrière. Ne pas déclencher d'appels IA payants supplémentaires sans besoin. Garder la V9 inchangée.
 
-## 12. Prochaine action décidée
+## 12. Liaison des deux ateliers de laboratoire — 26 novembre 2026
+
+**Implémenté dans GitHub, non encore essayé par l'utilisatrice :**
+- Sur `test-styles-labo.html`, la **tenue retenue** affiche désormais un bouton « Changer une pièce de cette tenue ».
+- Ce bouton transmet dans le stockage temporaire du **même onglet** seulement le nom de la tenue et la liste des identifiants de pièces, puis ouvre `test-remplacement-labo.html?source=generateur`.
+- La page de remplacement relit les vêtements concernés depuis Supabase avec les règles RLS déjà en place, charge la tenue et efface le transfert temporaire après succès. La sélection des tenues déjà enregistrées et l'import JSON demeurent disponibles en secours.
+- Aucun nouvel appel IA, aucune écriture en base, aucun changement de `index.html` ni de fonction serveur ; le fonctionnement du lien a été **vérifié par lecture de code et validation de syntaxe JavaScript**, mais **pas encore testé sur navigateur authentifié**.
+- Conformément au périmètre du projet, aucune information médicale ou personnelle issue d'autres conversations n'est injectée dans le transfert.
+
+**Prochaine vérification :** depuis le générateur du laboratoire, cliquer sur le nouveau bouton de la tenue retenue, constater le chargement direct dans l'atelier de remplacement, puis essayer un remplacement ciblé seulement si nécessaire.
+
+## 13. Prochaine action décidée
 
 **Pas de refonte ni de test payant déclenché automatiquement.** Examiner avec l'utilisatrice la robustesse du laboratoire et les solutions techniques pour le remplacement ciblé d'une pièce et la mémoire de rotation, en se fondant sur ce document et sur les décisions produit. Prioriser l'évaluation stylistique par l'utilisatrice avant toute promotion en production.
