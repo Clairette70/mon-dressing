@@ -133,6 +133,14 @@ Le test B révèle un défaut de robustesse indépendant de la qualité stylisti
 
 **Prochaine validation produit :** tester « Une autre pour cette pièce » sans répétition, puis « Revenir en arrière », et au moins un remplacement de chaussures ou de sac. Conserver la distinction entre succès technique, avis esthétique et validation globale avant promotion en V9.
 
-## 11. Prochaine action décidée
+## 11. Tests utilisateur et simplification de l'atelier — 26 novembre 2026
+
+**Retour utilisateur confirmé :** la commande « Une autre pour cette pièce » et le retour arrière ont tous deux fonctionné sur la tenue « Pervenche & noir — chic urbain ». La première association de remplacement de la blouse bleue par une blouse verte avait été jugée positive. **Ne pas confondre ce test de fonctionnement sur une tenue avec une validation générale du styliste ni présumer que toutes les autres alternatives ont été jugées élégantes.**
+
+**Amélioration publiée sur GitHub :** `test-remplacement-labo.html` permet désormais de **choisir une tenue directement dans la table existante `tenues`** après connexion (lecture seule et contrôle via RLS), sans import JSON. Chargement de photos des vrais vêtements via la table `vêtements`. Le JSON reste disponible en secours. Aucun changement dans `index.html`, aucune donnée ajoutée ou modifiée, aucun appel IA supplémentaire pour choisir une tenue. Syntaxe JavaScript vérifiée ; **essai fonctionnel de cette nouvelle sélection par l'utilisatrice pas encore effectué**.
+
+**Prochaine vérification :** ouvrir la page actualisée, sélectionner « Pervenche & noir — chic urbain » directement, vérifier l'affichage des vêtements et effectuer si souhaité un remplacement de chaussures. Garder la V9 inchangée.
+
+## 12. Prochaine action décidée
 
 **Pas de refonte ni de test payant déclenché automatiquement.** Examiner avec l'utilisatrice la robustesse du laboratoire et les solutions techniques pour le remplacement ciblé d'une pièce et la mémoire de rotation, en se fondant sur ce document et sur les décisions produit. Prioriser l'évaluation stylistique par l'utilisatrice avant toute promotion en production.
