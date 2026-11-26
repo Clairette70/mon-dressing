@@ -89,6 +89,7 @@ const db=window.supabase.createClient(URL_SUPABASE,KEY_SUPABASE);
 const $=id=>document.getElementById(id);
 let ready=false,busy=false,catalogue=new Map(),initial=null,actuel=null,pending=null,rejected=new Map(),requestContext={},savedLooks=[];
 const SESSION_KEY="mon-dressing-labo-v2-dernier-resultat";
+const TRANSFER_KEY="mon-dressing-labo-transfert-tenue-v1";
 function report(s){$('action-info').textContent=s}
 function lock(on){busy=on;$('diagnostic-button').disabled=on||!ready;$('login-button').disabled=on;$('restore').disabled=on;$('parse-json').disabled=on;
 $('saved-look').disabled=on||!ready||savedLooks.length===0;$('load-saved').disabled=on||!ready||!$('saved-look').value;$('refresh-saved').disabled=on||!ready;
@@ -101,7 +102,10 @@ const {data,error}=await db.auth.getSession();
 ready=!error&&Boolean(data.session);
 $('auth-info').textContent=ready?'Connectée à Mon Dressing.':'Connecte-toi avec ton compte Mon Dressing.';
 $('login-fields').classList.toggle('hidden',ready);lock(false);
-if(ready)await refreshSavedLooks();
+if(ready){
+ await refreshSavedLooks();
+ await importDepuisGenerateur();
+}
 }
 $('login-button').onclick=async()=>{
 lock(true);
@@ -148,6 +152,21 @@ try{
 }finally{lock(false)}
 }
 
+async function importDepuisGenerateur(){
+ if(!ready||new URLSearchParams(location.search).get('source')!=='generateur')return;
+ try{
+  const raw=sessionStorage.getItem(TRANSFER_KEY);
+  if(!raw)throw new Error('Aucun transfert trouvé dans cet onglet.');
+  await loadLook(raw); // Relit seulement les vêtements concernés, avec RLS.
+  sessionStorage.removeItem(TRANSFER_KEY);
+  // Évite le réimport automatique en cas d'actualisation.
+  history.replaceState(null,'',location.pathname);
+  $('source-info').textContent='Tenue générée chargée automatiquement. Choisis la pièce à changer.';
+ }catch(e){
+  $('source-info').textContent='Transfert automatique indisponible : '+(e?.message||String(e))+
+    '. Tu peux choisir directement une tenue sauvegardée dans la liste.';
+ }
+}
 async function refreshSavedLooks(){
 if(!ready||busy)return;
 $('saved-feedback').textContent='Chargement des tenues enregistrées…';
