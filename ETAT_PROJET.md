@@ -169,3 +169,17 @@ Le test B révèle un défaut de robustesse indépendant de la qualité stylisti
 ## 14. Prochaine action décidée
 
 **Pas de refonte ni de test payant déclenché automatiquement.** Examiner avec l'utilisatrice la robustesse du laboratoire et les solutions techniques pour le remplacement ciblé d'une pièce et la mémoire de rotation, en se fondant sur ce document et sur les décisions produit. Prioriser l'évaluation stylistique par l'utilisatrice avant toute promotion en production.
+
+
+## 15. Correction des remplacements de manteau — 26 novembre 2026
+
+**Signal utilisateur :** sur le scénario H du laboratoire (14 °C, temps sec), la tentative de remplacer le manteau échouait avec « aucun autre vêtement dans la catégorie ». La cause a été confirmée : un seul manteau (ID 33), mais trois vestes (IDs 28, 34, 35) dans le catalogue. Le filtre initial imposait une catégorie fonctionnelle strictement identique.
+
+**Modification effectuée, uniquement dans le laboratoire :**
+- Le moteur `assistant-remplacer-labo` version **2 ACTIVE** considère désormais vestes et manteaux comme candidats mutuels pour la fonction de couche extérieure ; le poncho reste une catégorie différente et n'est pas proposé automatiquement comme remplacement direct.
+- L'IA doit encore juger la cohérence de la protection, de la silhouette et de la météo ; aucune substitution obligatoire, et les autres vêtements restent inchangés.
+- L'interface unifiée transmet désormais au remplacement les éléments météorologiques du scénario de génération, lorsqu'ils existent. Pour H, ce sont des données de **simulation** à 14 °C, et non une prévision réelle. Aucun contexte supplémentaire ne doit être inféré pour les tenues enregistrées.
+- Contrôles effectués : code et fonction actifs relus ; présence du filtre de rôle compatible en version 2 ; syntaxe JavaScript du frontend vérifiée ; trois vestes alternatives recensées dans le catalogue. **Pas encore testé via la session de l'utilisatrice ni évalué stylistiquement après le correctif.**
+- Aucun changement de la V9 ou des tables de catalogue, et aucun appel IA payant déclenché par le correctif.
+
+**Prochaine vérification :** réessayer le remplacement du manteau dans le scénario H. L'IA peut proposer une veste adaptée, ou refuser pour un motif stylistique réel ; elle ne doit plus refuser simplement parce que la catégorie « manteau » n'a pas d'autre exemplaire.
