@@ -247,3 +247,14 @@ Le test B révèle un défaut de robustesse indépendant de la qualité stylisti
 **Vérifications effectuées :** fichier créé puis relu dans GitHub ; analyseur JavaScript sans erreur de syntaxe ; contrôle manuel de la logique de vérification et de l'absence de mutation de fiches. **La copie des 50 images n'a pas encore été exécutée dans le navigateur.** Actuellement, seul l'objet du test initial existe dans Storage.
 
 **Prochaine vérification :** utiliser la page de migration depuis une session authentifiée, contrôler le total 50/50 et la correspondance SHA-256 ; garder l'export local comme protection et ne pas supprimer les photos originales. Ensuite seulement préparer un mode de lecture authentifié des photos du bucket avec maintien du retour arrière.
+
+
+## 21. Vérification des 50 copies et galerie indépendante — 27 novembre 2026
+
+**Retour utilisateur :** copie globale terminée (« c bon »). **Vérification directe Supabase** : 50 objets dans `photos-v1`, 1 objet dans `migration-test`, et **50 photos originales** encore encodées dans `public."vêtements".photo_url`. Les 3 tenues sont conservées. Les 50 noms de copies correspondent à des identifiants de vêtements existants ; le transfert client contrôle aussi SHA-256 après téléchargement.
+
+**Outil de contrôle visuel préparé :** `test-affichage-photos-privees.html` publié sur GitHub Pages. Après connexion, il récupère les seuls champs `id,nom` du catalogue et les photos du bucket **privé**, puis les affiche en galerie. Il vérifie le décodage de chaque image par le navigateur ; aucun appel IA et aucune écriture en base.
+
+**Vérifications faites :** fichier créé et relu, syntaxe JavaScript valide, 50 copies et 50 originaux comptabilisés. **Encore à confirmer dans le navigateur** : affichage 50/50, couleurs, fond transparent, proportions, fonctionnement iPhone/Mac. Cet essai ne constitue pas encore le basculement de la V9 ni une restauration testée.
+
+**Prochaine action :** ouvrir la galerie privée, cliquer sur `Charger et afficher mes 50 photos privées`, vérifier le message de décodage et quelques images représentatives. Si validé, concevoir une bascule progressive des lecteurs d'images de V9 et du laboratoire, avec retour arrière, sans supprimer les originaux avant restauration testée.
