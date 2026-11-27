@@ -195,3 +195,14 @@ Le test B révèle un défaut de robustesse indépendant de la qualité stylisti
 - Avis supplémentaire : protection contre les mots de passe compromis désactivée. Ne pas dire que les alertes sont corrigées.
 - **Amélioration non destructive du laboratoire :** `test-styles-labo.html` affiche désormais directement la section des scénarios F à J (avec H) ; diagnostic gratuit toujours nécessaire pour activer les tests payants. Validation de syntaxe JavaScript réussie, fonctionnement sur appareil à confirmer.
 - **Prochaine décision :** sauvegarde privée restaurable, puis règles Storage correctes et migration progressive des photos, sans supprimer les originaux ni modifier la V9 prématurément. L'hébergement privé du code requiert un choix tenant compte de GitHub Pages et du fait que le JavaScript navigateur demeure inspectable.
+
+
+## 17. Correction de la fonction RPC privilégiée — 27 novembre 2026
+
+**Action autorisée explicitement par l'utilisatrice et exécutée dans Supabase :** `REVOKE ALL ON FUNCTION public.rls_auto_enable() FROM PUBLIC, anon, authenticated;`.
+
+**Contrôles directs après application :** `has_function_privilege('anon', ..., 'EXECUTE') = false` et `has_function_privilege('authenticated', ..., 'EXECUTE') = false`. Le déclencheur d'événements `ensure_rls` demeure activé (`evtenabled = 'O'`). Les nombres de fiches et tenues sont inchangés (50 et 3).
+
+**Nouveau contrôle du conseiller sécurité Supabase :** les deux alertes `anon_security_definer_function_executable` et `authenticated_security_definer_function_executable` ont disparu. **L'alerte `auth_leaked_password_protection` reste ouverte** ; elle est distincte et n'a pas été modifiée. Documentation : https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection.
+
+**Périmètre :** seule la permission EXECUTE de cette fonction a été modifiée ; aucune migration de photos, aucun changement de politiques Storage, aucune modification de `index.html`, aucun appel IA. La sauvegarde privée restaurable reste la prochaine étape avant toute migration d'images.
