@@ -98,6 +98,9 @@ hr{border:0;border-top:1px solid var(--line);margin:18px 0}
 </section>
 <section class="panel" id="result-section">
 <h2>3. Ta tenue</h2>
+<label for="photo-source">Photos affichées :
+<select id="photo-source"><option value="prive">Stockage privé — nouveau format</option><option value="base">Photos d’origine — retour arrière</option></select></label>
+<p id="photo-status" class="small">Les photos privées seront chargées à l’ouverture d’une tenue. Changement de source gratuit.</p>
 <p id="result-status" class="notice">Aucun test lancé.</p>
 <details id="import-ancien">
   <summary>Réafficher un résultat JSON déjà obtenu — sans appel payant</summary>
@@ -174,6 +177,7 @@ meteoFictive.J={...meteoFictive.G};
 let connected=false,busy=false,preflight=false,latestD=null;
 let savedOutfits=[],lookBase=null,lookCurrent=null,lookOption=null,lookPhotos=new Map();
 let replacementPending=null,refusContext=new Map(),lookResultToken=0,lookMeteo=null;
+let photoPathsPromise=null,photoUrls=new Map(),photoAccountId=null,photoLoading=false;
 function localDate(){const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');}
 function updateButtons(){
  $('diagnostic-button').disabled=!connected||busy;
@@ -183,7 +187,8 @@ function updateButtons(){
  $('refresh-saved').disabled=!connected||busy;
  document.querySelectorAll('button.change-piece').forEach(b=>b.disabled=!connected||busy||!!replacementPending);
  for(const id of ['adjust-accept','adjust-another','adjust-cancel'])$(id).disabled=busy||!replacementPending?.piece;
- $('reset-outfit').disabled=busy||!lookBase||!lookCurrent||lookBase.every((id,i)=>lookCurrent[i]===id);
+ $('reset-outfit').disabled=busy||photoLoading||!lookBase||!lookCurrent||lookBase.every((id,i)=>lookCurrent[i]===id);
+ $('photo-source').disabled=busy||photoLoading||!!replacementPending||!connected;
 }
 async function checkSession(){
  const {data,error}=await db.auth.getSession();connected=!error&&!!data?.session;
@@ -231,7 +236,7 @@ function textEl(tag,content,cls){const el=document.createElement(tag);el.textCon
 function cardPhoto(piece,id,interactive=false){
  const div=document.createElement('div');div.className='piece';
  if(lookBase&&!lookBase.includes(id))div.classList.add('modified');
- if(piece?.photo_url&&/^(https:\/\/|data:image\/)/.test(piece.photo_url)){
+ if(piece?.photo_url&&/^(https:\/\/|data:image\/|blob:)/.test(piece.photo_url)){
  const img=document.createElement('img');img.loading='lazy';img.src=piece.photo_url;img.alt=piece.nom||'Pièce du dressing';div.append(img);
  }else div.append(textEl('p','Photo indisponible','small'));
  div.append(textEl('div',piece?.nom||'Pièce '+id,'name'));
@@ -257,15 +262,94 @@ function optionsDansOrdre(body){
  }
  return options.sort((a,b)=>Number(b.selected)-Number(a.selected)||a.originalIndex-b.originalIndex);
 }
+function libererPhotosPrivees(){
+ for(const url of photoUrls.values())URL.revokeObjectURL(url);
+ photoUrls.clear();
+ photoPathsPromise=null;
+}
+async function cheminsPhotosPrivees(){
+ const {data:{user},error:userError}=await db.auth.getUser();
+ if(userError||!user)throw new Error('Connexion requise pour lire les images privées.');
+ if(photoAccountId!==user.id){
+  libererPhotosPrivees();
+  photoAccountId=user.id;
+ }
+ if(photoPathsPromise)return photoPathsPromise;
+ photoPathsPromise=(async()=>{
+  const prefix=user.id+'/photos-v1';
+  const {data,error}=await db.storage.from('photos-vetements').list(prefix,{limit:501});
+  if(error)throw new Error('Stockage privé inaccessible : '+error.message);
+  if((data||[]).length>500)throw new Error('Dossier photo trop fourni : pagination nécessaire.');
+  const result=new Map();
+  for(const entry of data||[]){
+   const match=/^([0-9]+)-[a-f0-9]{20}\.(png|jpg|webp|gif)$/i.exec(entry.name||'');
+   if(!match)continue;
+   const id=Number(match[1]);
+   if(result.has(id))throw new Error('Plusieurs copies privées existent pour la pièce '+id+'.');
+   result.set(id,prefix+'/'+entry.name);
+  }
+  return result;
+ })();
+ try{return await photoPathsPromise;}
+ catch(e){photoPathsPromise=null;throw e;}
+}
+async function photoPriveePour(id){
+ if(photoUrls.has(id))return photoUrls.get(id);
+ const path=(await cheminsPhotosPrivees()).get(id);
+ if(!path)throw new Error('Copie privée absente pour la pièce '+id+'.');
+ const {data,error}=await db.storage.from('photos-vetements').download(path);
+ if(error||!data)throw new Error('Lecture privée de la pièce '+id+' impossible : '+(error?.message||'réponse vide'));
+ const url=URL.createObjectURL(data);
+ photoUrls.set(id,url);
+ return url;
+}
+async function chargerPiecePhoto(id){
+ const usePrivate=$('photo-source').value==='prive';
+ const {data,error}=await db.from('vêtements')
+  .select(usePrivate?'id,nom,couleur':'id,nom,couleur,photo_url').eq('id',id).single();
+ if(error||!data)throw new Error('Pièce '+id+' introuvable dans le dressing.');
+ if(usePrivate)data.photo_url=await photoPriveePour(id);
+ return data;
+}
 async function photosEtInventaire(body,options){
  const ids=[...new Set(options.flatMap(o=>o.tenue.pieces||[]))];
  if(!ids.length)return {map:new Map(),watch:[],photoError:null};
- // Une lecture seulement des IDs effectivement sélectionnés, sans requête sur tout le dressing.
- const {data,error}=await db.from('vêtements').select('id,nom,couleur,photo_url').in('id',ids).limit(ids.length);
+ const usePrivate=$('photo-source').value==='prive';
+ const {data,error}=await db.from('vêtements')
+  .select(usePrivate?'id,nom,couleur':'id,nom,couleur,photo_url')
+  .in('id',ids).limit(ids.length);
  if(error)return {map:new Map(),watch:[],photoError:error.message};
- const map=new Map((data||[]).map(p=>[p.id,p]));
- return {map,watch:(data||[]).filter(p=>/z[eé]br|vert sapin|bottine.*vert|boot.*vert|vert.*bottin/i.test([p.nom,p.couleur].join(' '))),photoError:null};
+ if((data||[]).length!==ids.length)return {map:new Map(),watch:[],photoError:'Une pièce de la tenue est introuvable.'};
+ try{
+  if(usePrivate){
+   // La base n'envoie aucun champ photo_url (URI base64 de plusieurs Mo).
+   await Promise.all(data.map(async p=>{p.photo_url=await photoPriveePour(p.id);}));
+  }
+  const map=new Map(data.map(p=>[p.id,p]));
+  return {map,watch:data.filter(p=>/z[eé]br|vert sapin|bottine.*vert|boot.*vert|vert.*bottin/i.test([p.nom,p.couleur].join(' '))),photoError:null};
+ }catch(e){
+  // Pas de rechargement implicite des anciens formats : contrôle utilisateur explicite.
+  return {map:new Map(data.map(p=>[p.id,{...p,photo_url:null}])),watch:[],
+   photoError:e?.message||String(e)};
+ }
 }
+$('photo-source').addEventListener('change',async()=>{
+ if(!lookCurrent||busy||photoLoading||replacementPending)return;
+ photoLoading=true;updateButtons();
+ $('photo-status').textContent='Changement de source : chargement des photos…';
+ try{
+  const result=await photosEtInventaire(null,[{tenue:{pieces:[...lookCurrent]}}]);
+  lookPhotos=result.map;
+  // Les éléments de la planche sont remplacés avant toute révocation de blob URL.
+  afficherTenueActive();
+  if($('photo-source').value==='base')libererPhotosPrivees();
+  $('photo-status').textContent=result.photoError
+   ? 'Erreur de lecture : '+result.photoError+' — choisis « Photos d’origine » pour revenir à l’affichage précédent.'
+   : result.map.size+' photo(s) lue(s) depuis '+($('photo-source').value==='prive'?'le stockage privé':'la base')+'. Aucun appel IA.';
+ }catch(e){$('photo-status').textContent='Lecture impossible : '+(e?.message||String(e));}
+ finally{photoLoading=false;updateButtons();}
+});
+window.addEventListener('pagehide',libererPhotosPrivees);
 function afficherLook(root,opt,inventaire){
  const card=document.createElement('article');card.className='look choice';
  card.append(textEl('span','Tenue principale','tag'));
@@ -355,6 +439,9 @@ async function afficherReponse(body,origine,meteoTest=null){
  if(token!==lookResultToken)return;
  lookPhotos=inventory.map;
  afficherTenueActive();afficherAudit(body,inventory);
+ $('photo-status').textContent=inventory.photoError
+  ? 'Erreur photo : '+inventory.photoError+' — utilise « Photos d’origine » pour revenir au format précédent.'
+  : inventory.map.size+' photo(s) lue(s) depuis '+($('photo-source').value==='prive'?'le stockage privé':'la base')+'.';
  $('result-status').textContent=inventory.photoError
   ? origine+' : tenue affichée sans photos. '+inventory.photoError
   : origine+' : tenue prête'+(lookPhotos.size?' avec photos.':'.');
@@ -453,9 +540,7 @@ async function rechercherUnePiece(){
   if(oldIds.includes(newId)||refused.has(newId))throw new Error('La proposition répète une pièce déjà utilisée ou écartée.');
   const changed=oldIds.map(x=>x===request.baseId?newId:x);
   if(changed.some((x,i)=>x!==answer.tenue_pieces[i]))throw new Error('Les autres pièces ont changé : proposition rejetée.');
-  const {data,error}=await db.from('vêtements')
-    .select('id,nom,couleur,photo_url').eq('id',newId).single();
-  if(error||!data)throw new Error('Pièce proposée introuvable dans ton dressing.');
+  const data=await chargerPiecePhoto(newId);
   lookPhotos.set(newId,data);
   request.piece=data;request.conseil=String(answer.conseil||'').slice(0,500);
   $('adjust-status').textContent='Une nouvelle pièce est proposée. Confirme, demande une autre ou annule.';
