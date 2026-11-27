@@ -206,3 +206,17 @@ Le test B révèle un défaut de robustesse indépendant de la qualité stylisti
 **Nouveau contrôle du conseiller sécurité Supabase :** les deux alertes `anon_security_definer_function_executable` et `authenticated_security_definer_function_executable` ont disparu. **L'alerte `auth_leaked_password_protection` reste ouverte** ; elle est distincte et n'a pas été modifiée. Documentation : https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection.
 
 **Périmètre :** seule la permission EXECUTE de cette fonction a été modifiée ; aucune migration de photos, aucun changement de politiques Storage, aucune modification de `index.html`, aucun appel IA. La sauvegarde privée restaurable reste la prochaine étape avant toute migration d'images.
+
+
+## 18. Outil de sauvegarde privée en lecture seule — 27 novembre 2026
+
+**Créé dans GitHub :** `sauvegarde-locale-verifiee.html`, outil autonome distinct de la V9. Disponible depuis la même origine GitHub Pages et authentification Supabase existante.
+
+- Téléchargement **sur clic uniquement**, directement dans le navigateur de l'utilisatrice. Aucun fichier contenant les données personnelles ou les images n'a été publié sur GitHub ; le dépôt public ne contient que le code de l'outil.
+- Relit `public."vêtements"` en lots de 4 avec les champs complets et `public.tenues` (sans écriture en base). Vérifie les identifiants, les formats PNG/JPEG/WebP/GIF encodés en base64, les références des tenues, les décomptes et les doublons.
+- Construit une archive JSON intégrant toutes les fiches et les photos d'origine ainsi que les tenues, avec empreinte SHA-256 du contenu. Section indépendante pour **rouvrir le fichier téléchargé et comparer son empreinte** localement.
+- Contrôles effectués : fichier créé et relu dans GitHub, validation de syntaxe JavaScript, chemins d'export et de vérification présents, aucune méthode d'écriture Supabase dans la page. **Aucune sauvegarde de données réelles téléchargée ni aucun fichier restauré par l'utilisatrice à ce stade.** L'exécution sur son navigateur et l'intégrité de la sauvegarde restent à valider avant migration.
+- Limite : une sauvegarde dont la somme de contrôle est valide prouve l'intégrité structurelle du fichier reçu selon les contrôles implémentés, **pas** la restaurabilité réelle. Le test de restauration et la conservation privée doivent précéder toute suppression des données actuelles.
+- La V9 `index.html`, les 50 images dans la base et les 3 tenues sont inchangées. Aucun appel IA payant lancé.
+
+**Prochaine action de l'utilisatrice :** ouvrir la page de sauvegarde, se connecter, cliquer sur « Télécharger ma sauvegarde complète », sélectionner ensuite le fichier téléchargé dans « Vérifier le fichier téléchargé » et confirmer le message d'intégrité. Ne migrer aucune photo avant confirmation.
