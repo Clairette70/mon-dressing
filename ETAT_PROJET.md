@@ -220,3 +220,14 @@ Le test B révèle un défaut de robustesse indépendant de la qualité stylisti
 - La V9 `index.html`, les 50 images dans la base et les 3 tenues sont inchangées. Aucun appel IA payant lancé.
 
 **Prochaine action de l'utilisatrice :** ouvrir la page de sauvegarde, se connecter, cliquer sur « Télécharger ma sauvegarde complète », sélectionner ensuite le fichier téléchargé dans « Vérifier le fichier téléchargé » et confirmer le message d'intégrité. Ne migrer aucune photo avant confirmation.
+
+
+## 19. Préparation et droits privés du stockage photo — 27 novembre 2026
+
+**Retour utilisateur :** téléchargement et vérification de la sauvegarde annoncés « tout est ok ». Le fichier privé n'a pas été envoyé à l'assistant ; la restauration réelle reste à vérifier avant toute suppression.
+
+**Migration SQL appliquée à Storage :** anciennes politiques `ajout_photos pd03l5_0` et `lecture_photos pd03l5_0` remplacées par `mon_dressing_photos_insert_prive` (INSERT) et `mon_dressing_photos_select_prive` (SELECT), limitées au bucket privé `photos-vetements`, à l'utilisateur propriétaire existant et au dossier portant son identifiant `auth.uid()`. Aucun accès UPDATE/DELETE accordé. Après application, lecture directe des deux politiques confirmée, 50 photos originales toujours dans la table, bucket encore vide.
+
+**Outil de test sans modification des fiches :** `test-stockage-photo.html` publié dans GitHub. Après authentification, la personne choisit une pièce, déclenche elle-même la copie d'une seule photo en `migration-test/`, puis vérification SHA-256 des octets téléchargés à partir du stockage privé. L'original de `photo_url` n'est jamais modifié ; aucune IA ni écriture de vêtement. Le fichier test dans Storage est conservé après succès et pourra être supprimé distinctement plus tard si souhaité.
+
+**Vérifications effectuées :** page GitHub relue, syntaxe JavaScript testée, politiques RLS inspectées, bucket privé vide avant premier test. **Reste à valider :** essai complet avec une session navigateur authentifiée (UPLOAD + DOWNLOAD), qualité de l'image affichée, accès refusé aux autres comptes, procédure réversible de migration et restauration. La V9 reste inchangée.
