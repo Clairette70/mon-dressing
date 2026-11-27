@@ -258,3 +258,14 @@ Le test B révèle un défaut de robustesse indépendant de la qualité stylisti
 **Vérifications faites :** fichier créé et relu, syntaxe JavaScript valide, 50 copies et 50 originaux comptabilisés. **Encore à confirmer dans le navigateur** : affichage 50/50, couleurs, fond transparent, proportions, fonctionnement iPhone/Mac. Cet essai ne constitue pas encore le basculement de la V9 ni une restauration testée.
 
 **Prochaine action :** ouvrir la galerie privée, cliquer sur `Charger et afficher mes 50 photos privées`, vérifier le message de décodage et quelques images représentatives. Si validé, concevoir une bascule progressive des lecteurs d'images de V9 et du laboratoire, avec retour arrière, sans supprimer les originaux avant restauration testée.
+
+
+## 22. Photos privées dans le laboratoire unifié — 27 novembre 2026
+
+**Retour utilisateur :** galerie de 50 photos privées validée visuellement (« oui »).
+
+**Intégration publiée dans `test-styles-labo.html` :** sélection « Stockage privé — nouveau format » par défaut avec mode « Photos d’origine — retour arrière ». Pour les images privées, les requêtes à `vêtements` demandent uniquement `id, nom, couleur` (sans `photo_url` base64) ; les copies sont téléchargées après authentification depuis le bucket `photos-vetements` et les URL temporaires en mémoire sont libérées à la fermeture de l'onglet. Les nouvelles pièces proposées par le remplacement suivent également la source d'image choisie. Aucun appel IA ne se produit lors d'un changement de source.
+
+**Vérifications effectuées :** code relu dans GitHub après publication ; syntaxe JavaScript analysée, branchements de lecture privés, remplacement ciblé et mode de retour arrière présents. **À valider** : parcours en navigateur après ouverture d'une tenue sauvegardée, image de pièce remplacée, changement de mode base/privé, fonctionnement iPhone. Cette étape ne représente pas encore une bascule de la V9.
+
+**Prochaine validation** : ouvrir une tenue enregistrée dans le laboratoire unifié, vérifier l'affichage privé de toutes les pièces, puis tester le bouton de retour vers les photos d'origine (gratuit). Ne pas lancer un scénario payant pour ce contrôle. Ensuite, concevoir la bascule contrôlée de la V9 et l'historique des vêtements réellement portés.
