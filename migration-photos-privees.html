@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mon Dressing — Copie sécurisée des photos</title>
+<style>
+:root{--accent:#654158;--line:#e4dae2;--ink:#302a34}
+*{box-sizing:border-box}
+body{margin:0;background:#f8f6f7;color:var(--ink);font:15px/1.5 system-ui,-apple-system,Arial,sans-serif}
+main{max-width:780px;margin:auto;padding:20px}
+h1,h2{font-family:Georgia,serif;font-weight:normal}
+h1{font-size:30px}
+section{padding:18px;border:1px solid var(--line);border-radius:14px;background:white;margin:15px 0}
+input{width:100%;padding:11px;border:1px solid #d6c9d2;border-radius:8px;font:inherit}
+label{display:block;margin:10px 0;font-size:13px}
+button{border:0;border-radius:9px;padding:12px 15px;background:var(--accent);color:white;font-weight:600;cursor:pointer;margin:3px 4px 3px 0}
+button.secondary{color:var(--accent);border:1px solid var(--accent);background:white}
+button:disabled{opacity:.5;cursor:not-allowed}
+p{margin:8px 0 12px}
+#log{padding:13px;border-radius:9px;background:#f4eef2;white-space:pre-wrap;overflow-wrap:anywhere;min-height:75px}
+small,.small{color:#736975;font-size:13px}
+progress{width:100%;height:17px}
+.alert{border-left:3px solid #a47731;padding-left:13px}
+</style></head>
+<body><main>
+<h1>Mon Dressing — migration privée des photos</h1>
+<p>Copier et vérifier les photos du dressing dans leur stockage privé. Les originaux restent dans la base ; aucune fiche ni tenue n'est modifiée.</p>
+<section><h2>1. Connexion</h2><p id="auth">Vérification de la connexion…</p>
+<div id="login" hidden><label>E-mail Mon Dressing<input type="email" id="email" autocomplete="username"></label>
+<label>Mot de passe<input type="password" id="password" autocomplete="current-password"></label>
+<button id="connect">Se connecter</button></div></section>
+<section><h2>2. Préparer la copie</h2>
+<p class="alert">La sauvegarde locale doit déjà avoir été téléchargée et vérifiée. Le transfert peut utiliser plusieurs dizaines de mégaoctets : privilégie le Wi-Fi et conserve l'onglet ouvert.</p>
+<button id="inspect" class="secondary" disabled>Analyser le catalogue (gratuit)</button>
+<p id="summary" class="small">Aucune analyse réalisée.</p>
+<p class="small">Une image déjà transférée sera relue et comparée à l'original au lieu d'être écrasée. Le processus s'arrête en cas d'erreur ; il peut être relancé.</p>
+<button id="migrate" disabled>Copier et vérifier toutes les photos</button>
+<button id="stop" class="secondary" disabled>Arrêter après la photo en cours</button>
+<p><progress id="progress" max="1" value="0"></progress></p>
+<p id="progress-note" class="small">0 photo vérifiée.</p>
+</section>
+<section><h2>3. Résultat</h2>
+<div id="log" role="status" aria-live="polite">Aucune copie en cours.</div>
+<p class="small">Le résultat « toutes les photos vérifiées » atteste la correspondance des octets de chaque copie au moment du test. L'intégration des images dans l'application sera vérifiée séparément, avant toute suppression des anciens formats.</p>
+</section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+"use strict";
+const SB_URL="https://vidypbmhsdjacjrxeqlr.supabase.co";
+const SB_KEY="sb_publishable_Mt_Wtn1lLTPYOb5Sh2PH3A_5GdD3yRd";
+const db=window.supabase?.createClient(SB_URL,SB_KEY);
+const $=id=>document.getElementById(id);
+let user=null,working=false,stopRequested=false,items=null,done=0,allObjects=new Set();
+let verified=[];
+const storage=()=>db.storage.from("photos-vetements");
+function controls(){
+ $("connect").disabled=working;
+ $("inspect").disabled=!user||working;
+ $("migrate").disabled=!user||working||!items?.length;
+ $("stop").disabled=!working||!items;
+}
+function report(s){$("log").textContent=s}
+async function auth(){
+ if(!db){$("auth").textContent="La bibliothèque Supabase n'a pas chargé.";return}
+ const {data,error}=await db.auth.getUser();
+ user=error?null:data?.user||null;
+ $("auth").textContent=user?"Compte connecté. Le stockage est réservé à ton compte.":"Connecte-toi avec tes identifiants Mon Dressing.";
+ $("login").hidden=!!user;
+ if(user)await inspect();
+ controls();
+}
+$("connect").onclick=async()=>{
+ if(!db||working)return;
+ working=true;controls();
+ try{
+  const {error}=await db.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});
+  if(error)throw error;
+  $("password").value="";
+  await auth();
+ }catch(e){$("auth").textContent="Connexion impossible : "+(e.message||String(e))}
+ finally{working=false;controls()}
+};
+async function inspect(){
+ if(!user)return;
+ const {data,error}=await db.from("vêtements").select("id,nom").order("id",{ascending:true}).limit(501);
+ if(error)throw Error("Catalogue inaccessible : "+error.message);
+ if(!Array.isArray(data)||!data.length||data.length>500||
+    data.some(p=>!Number.isSafeInteger(p.id)||p.id<1)||
+    new Set(data.map(p=>p.id)).size!==data.length)
+  throw Error("Catalogue vide, trop grand ou avec des identifiants invalides.");
+ const prefix=user.id+"/photos-v1";
+ const {data:objects,error:listingError}=await storage().list(prefix,{limit:1000,sortBy:{column:"name",order:"asc"}});
+ if(listingError)throw Error("Stockage privé inaccessible : "+listingError.message);
+ if((objects||[]).length>=1000)throw Error("Dossier de stockage trop fourni ; pagination nécessaire avant reprise.");
+ items=data;
+ allObjects=new Set((objects||[]).map(x=>x.name).filter(Boolean));
+ $("summary").textContent=items.length+" vêtement(s) dans le catalogue ; "+allObjects.size+
+  " copie(s) détectée(s) dans le dossier photos-v1 (pas encore revérifiées dans cette session).";
+ controls();
+}
+$("inspect").onclick=async()=>{
+ working=true;controls();
+ try{await inspect();report("Analyse réussie. Aucun transfert lancé.")}
+ catch(e){items=null;report("Analyse impossible : "+(e.message||String(e)))}
+ finally{working=false;controls()}
+};
+function decode(uri){
+ const m=/^data:(image\/(?:png|jpeg|webp|gif));base64,([A-Za-z0-9+/]+={0,2})$/i.exec(uri||"");
+ if(!m)throw Error("Photo absente ou format base64 non reconnu.");
+ const raw=atob(m[2]),bytes=new Uint8Array(raw.length);
+ for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);
+ if(!bytes.length)throw Error("Photo vide");
+ const head=raw.slice(0,12),mime=m[1].toLowerCase();
+ const magic=mime==="image/png"?head.startsWith("\x89PNG\r\n\x1a\n"):
+  mime==="image/jpeg"?head.startsWith("\xff\xd8\xff"):
+  mime==="image/webp"?head.startsWith("RIFF")&&head.slice(8,12)==="WEBP":
+  head.startsWith("GIF87a")||head.startsWith("GIF89a");
+ if(!magic)throw Error("Signature binaire de l'image invalide");
+ const ext=mime==="image/jpeg"?"jpg":mime.split("/")[1];
+ return {bytes,mime,ext};
+}
+async function sha256(bytes){
+ const hash=await crypto.subtle.digest("SHA-256",bytes);
+ return Array.from(new Uint8Array(hash),n=>n.toString(16).padStart(2,"0")).join("");
+}
+async function verifyRemote(path,size,digest){
+ const {data,error}=await storage().download(path);
+ if(error||!data)throw Error("Impossible de relire la copie privée : "+(error?.message||"réponse vide"));
+ const copy=new Uint8Array(await data.arrayBuffer());
+ if(copy.byteLength!==size)throw Error("Copie de taille différente de l'original");
+ if(await sha256(copy)!==digest)throw Error("SHA-256 différent : copie invalide");
+}
+$("stop").onclick=()=>{stopRequested=true;$("stop").disabled=true;
+ $("progress-note").textContent="Arrêt demandé. Vérification de la photo en cours…";
+};
+$("migrate").onclick=async()=>{
+ if(working||!user||!items?.length)return;
+ working=true;stopRequested=false;done=0;verified=[];controls();
+ $("progress").value=0;
+ try{
+  // Relecture de l'index pour reprendre après une interruption ou une actualisation.
+  await inspect();
+  const total=items.length;
+  for(const p of items){
+   if(stopRequested)break;
+   report("Traitement "+(done+1)+"/"+total+" : "+p.nom+"\nOriginal maintenu dans la base. Vérification en cours…");
+   const {data,error}=await db.from("vêtements").select("id,photo_url").eq("id",p.id).single();
+   if(error||!data)throw Error("Lecture de la fiche "+p.id+" impossible : "+(error?.message||"absente"));
+   const {bytes,mime,ext}=decode(data.photo_url);
+   const digest=await sha256(bytes);
+   const name=p.id+"-"+digest.slice(0,20)+"."+ext;
+   const dest=user.id+"/photos-v1/"+name;
+   let copied=false;
+   if(!allObjects.has(name)){
+    const blob=new Blob([bytes],{type:mime});
+    const {error:uploadError}=await storage().upload(dest,blob,{contentType:mime,upsert:false});
+    if(uploadError){
+     // Un autre onglet peut avoir créé le même fichier entre la liste et cet appel.
+     if(!/already exists|duplicate|409|resource_already_exists/i.test(uploadError.message||""))
+      throw Error("Échec du transfert de "+p.id+" : "+uploadError.message);
+    }else copied=true;
+   }
+   await verifyRemote(dest,bytes.byteLength,digest);
+   allObjects.add(name);
+   verified.push({id:p.id,sha256:digest,path:dest,octets:bytes.byteLength});
+   done++;
+   $("progress").value=done/total;
+   $("progress-note").textContent=done+"/"+total+" photo(s) vérifiée(s), "+(copied?"nouvelle copie enregistrée":"copie existante contrôlée")+".";
+   await new Promise(resolve=>setTimeout(resolve,0));
+  }
+  if(stopRequested){
+   report("PROCESSUS INTERROMPU À TA DEMANDE.\n"+done+"/"+total+" photo(s) vérifiée(s) durant cette session.\n"+
+    "Les copies déjà transférées restent privées. Tu pourras reprendre en relançant la copie.");
+  }else{
+   if(done!==total)throw Error("Total incomplet");
+   const {count,error:countError}=await db.from("vêtements").select("id",{count:"exact",head:true});
+   if(countError||count!==total)throw Error("Le nombre de vêtements a changé pendant le transfert. Contrôle à reprendre.");
+   const {data:after,error:afterError}=await storage().list(user.id+"/photos-v1",{limit:1000});
+   if(afterError||!after)throw Error("Vérification finale du dossier impossible");
+   const names=new Set(after.map(x=>x.name));
+   if(verified.some(v=>!names.has(v.path.split("/").pop())))throw Error("Une copie vérifiée n'est plus présente dans le stockage");
+   report("COPIE TERMINÉE ET VÉRIFIÉE : "+total+"/"+total+" photos.\n"+
+    "Chaque photo a été relue depuis le stockage privé et comparée à son original par SHA-256.\n"+
+    "Aucune photo de la base ni aucune tenue n'a été modifiée.\n"+
+    "La V9 utilise toujours les originaux. Prochaine étape : tester l'affichage depuis le stockage privé.");
+  }
+ }catch(e){
+  report("MIGRATION DES COPIES INCOMPLÈTE : "+(e.message||String(e))+"\n"+
+   done+" photo(s) validée(s) avant cette erreur.\n"+
+   "Aucun original supprimé. Tu pourras reprendre après correction.");
+ }finally{
+  working=false;controls();
+  // L'état du dossier est relu à la prochaine tentative.
+ }
+};
+auth().catch(e=>{report("Erreur d'initialisation : "+(e.message||String(e)));controls()});
+</script>
+</body></html>
