@@ -231,3 +231,19 @@ Le test B révèle un défaut de robustesse indépendant de la qualité stylisti
 **Outil de test sans modification des fiches :** `test-stockage-photo.html` publié dans GitHub. Après authentification, la personne choisit une pièce, déclenche elle-même la copie d'une seule photo en `migration-test/`, puis vérification SHA-256 des octets téléchargés à partir du stockage privé. L'original de `photo_url` n'est jamais modifié ; aucune IA ni écriture de vêtement. Le fichier test dans Storage est conservé après succès et pourra être supprimé distinctement plus tard si souhaité.
 
 **Vérifications effectuées :** page GitHub relue, syntaxe JavaScript testée, politiques RLS inspectées, bucket privé vide avant premier test. **Reste à valider :** essai complet avec une session navigateur authentifiée (UPLOAD + DOWNLOAD), qualité de l'image affichée, accès refusé aux autres comptes, procédure réversible de migration et restauration. La V9 reste inchangée.
+
+
+## 20. Copie progressive des 50 photos vers Storage — 27 novembre 2026
+
+**Retour utilisateur :** premier test sur une photo déclaré réussi. Vérification Supabase indépendante : **1 objet** dans le bucket privé `photos-vetements` (dossier `migration-test`), et **50 photos originales** encore présentes dans les fiches `vêtements`.
+
+**Outil de migration préparé et publié :** `migration-photos-privees.html`, distinct de la V9 et du laboratoire stylistique. Son fonctionnement prévu :
+- authentification avec le compte existant ; analyse du catalogue et liste du dossier privé `<user.id>/photos-v1` ;
+- lancement **manuel** du transfert des images, une par une ; chaque copie est nommée par l'identifiant de la fiche et un préfixe d'empreinte SHA-256 ;
+- téléchargement authentifié de chaque copie et comparaison des octets et de l'empreinte SHA-256 avec la source ;
+- reprise d'une session interrompue en recontrôlant les copies déjà existantes ; aucune écriture de `vêtements.photo_url`, aucune suppression d'image et aucun nouvel appel IA.
+- bouton d'arrêt après vérification de la photo en cours ; affichage du nombre d'images validées.
+
+**Vérifications effectuées :** fichier créé puis relu dans GitHub ; analyseur JavaScript sans erreur de syntaxe ; contrôle manuel de la logique de vérification et de l'absence de mutation de fiches. **La copie des 50 images n'a pas encore été exécutée dans le navigateur.** Actuellement, seul l'objet du test initial existe dans Storage.
+
+**Prochaine vérification :** utiliser la page de migration depuis une session authentifiée, contrôler le total 50/50 et la correspondance SHA-256 ; garder l'export local comme protection et ne pas supprimer les photos originales. Ensuite seulement préparer un mode de lecture authentifié des photos du bucket avec maintien du retour arrière.
