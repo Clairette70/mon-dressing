@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mon Dressing — Sauvegarde privée vérifiée</title>
+<style>
+:root{--ink:#302b35;--wine:#654158;--line:#e4dae2}
+*{box-sizing:border-box}body{margin:0;background:#f8f6f7;color:var(--ink);font:15px/1.5 system-ui,-apple-system,Arial,sans-serif}
+main{max-width:760px;margin:auto;padding:20px}h1{font:normal 30px Georgia,serif}h2{font:normal 22px Georgia,serif;margin:0 0 12px}
+section{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;margin:16px 0}
+p{margin:8px 0 14px}label{display:block;font-size:13px;margin:12px 0}
+input{display:block;width:100%;padding:11px;border:1px solid #c9bcc7;border-radius:8px;font:inherit}
+button{background:var(--wine);color:#fff;border:0;border-radius:9px;padding:12px 17px;font:600 14px system-ui;cursor:pointer;margin-right:8px}
+button:disabled{opacity:.5;cursor:not-allowed}.note{font-size:13px;color:#625b64}
+#log{background:#f5eef3;white-space:pre-wrap;overflow-wrap:anywhere;padding:12px;border-radius:9px;min-height:44px}
+.warning{border-left:3px solid #a47731;padding-left:12px}.hidden{display:none}progress{width:100%;height:13px}
+</style>
+</head>
+<body>
+<main>
+<h1>Mon Dressing — sauvegarde privée</h1>
+<p>Outil indépendant de la V9. Aucun changement dans Supabase : lecture seule. La sauvegarde contient toutes les fiches, leurs photos et les tenues.</p>
+<section>
+<h2>1. Connexion à ton compte</h2>
+<p id="auth" role="status">Vérification de la session…</p>
+<div id="login" class="hidden">
+<label>E-mail Mon Dressing<input type="email" id="email" autocomplete="username"></label>
+<label>Mot de passe<input type="password" id="password" autocomplete="current-password"></label>
+<button id="connect">Se connecter</button>
+</div>
+</section>
+<section>
+<h2>2. Créer la sauvegarde</h2>
+<p class="warning">Le fichier contient tes photos et tes informations de dressing. Conserve-le dans un dossier privé, pas sur GitHub ni dans un partage public. Cette page ne téléverse aucune copie ailleurs.</p>
+<button id="export" disabled>Télécharger ma sauvegarde complète</button>
+<progress id="progress" max="1" value="0" class="hidden"></progress>
+<p id="export-detail" class="note">Le téléchargement peut représenter plus de 60 Mo. N'actualise pas la page pendant le traitement.</p>
+</section>
+<section>
+<h2>3. Vérifier le fichier téléchargé</h2>
+<p>Sélectionne ici le fichier que tu viens d'enregistrer : il sera vérifié localement, sans être envoyé à un serveur.</p>
+<label>Choisir la sauvegarde JSON<input type="file" id="check-file" accept=".json,application/json"></label>
+<button id="check" disabled>Vérifier l'intégrité de mon fichier</button>
+</section>
+<section>
+<h2>Résultat du contrôle</h2>
+<div id="log" role="status" aria-live="polite">Aucune sauvegarde vérifiée pour le moment.</div>
+<p class="note">Une vérification d'intégrité ne prouve pas qu'une restauration complète fonctionne : la restauration sera testée séparément avant toute migration.</p>
+</section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+"use strict";
+const SB_URL="https://vidypbmhsdjacjrxeqlr.supabase.co";
+const SB_KEY="sb_publishable_Mt_Wtn1lLTPYOb5Sh2PH3A_5GdD3yRd";
+const db=window.supabase?.createClient(SB_URL,SB_KEY);
+const $=id=>document.getElementById(id);
+let signedIn=false,busy=false;
+const fmt=n=>new Intl.NumberFormat("fr-FR").format(n);
+function message(text){$("log").textContent=text}
+function state(){ $("export").disabled=!signedIn||busy;$("check").disabled=busy||!$("check-file").files?.length;$("connect").disabled=busy }
+async function session(){
+ if(!db){$("auth").textContent="Bibliothèque Supabase indisponible.";return;}
+ const {data,error}=await db.auth.getUser();
+ signedIn=!error&&Boolean(data?.user);
+ $("auth").textContent=signedIn?"Connexion vérifiée. Sauvegarde disponible.":"Connecte-toi avec tes identifiants Mon Dressing.";
+ $("login").classList.toggle("hidden",signedIn);
+ state();
+}
+$("connect").onclick=async()=>{
+ if(!db||busy)return;
+ busy=true;state();
+ try{
+  const {error}=await db.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});
+  if(error)throw error;
+  $("password").value="";
+  await session();
+ }catch(e){$("auth").textContent="Connexion impossible : "+(e?.message||String(e))}
+ finally{busy=false;state()}
+};
+async function sha256(str){
+ const array=new TextEncoder().encode(str);
+ const digest=await crypto.subtle.digest("SHA-256",array);
+ return Array.from(new Uint8Array(digest),n=>n.toString(16).padStart(2,"0")).join("");
+}
+async function fetchAll(table,columns,onPage){
+ // Limiter les lots pour préserver la mémoire pendant le transfert d'images encodées.
+ const pageSize=table==="vêtements"?4:50;
+ const {count,error:countError}=await db.from(table).select("id",{count:"exact",head:true});
+ if(countError||!Number.isInteger(count))throw Error("Comptage "+table+" impossible : "+(countError?.message||"résultat absent"));
+ if(count>500 && table==="vêtements")throw Error("Le catalogue dépasse la limite prévue (500 vêtements).");
+ const items=[];
+ for(let pos=0;pos<count;pos+=pageSize){
+  const {data,error}=await db.from(table).select(columns).order("id",{ascending:true}).range(pos,pos+pageSize-1);
+  if(error)throw Error("Lecture "+table+" incomplète : "+error.message);
+  if(!data||data.length!==Math.min(pageSize,count-pos))throw Error("Page manquante dans "+table+" à partir de "+pos);
+  items.push(...data);
+  if(onPage)onPage(items.length,count);
+  // Laisse le navigateur actualiser la progression entre les lots.
+  await new Promise(resolve=>setTimeout(resolve,0));
+ }
+ if(items.length!==count||new Set(items.map(x=>String(x.id))).size!==count)
+  throw Error("Doublon ou total incorrect pour "+table);
+ const {count:after,error:afterError}=await db.from(table).select("id",{count:"exact",head:true});
+ if(afterError||after!==count)throw Error("Le nombre de "+table+" a changé pendant l'export. Recommence.");
+ return items;
+}
+function validateImage(dataUri){
+ if(typeof dataUri!=="string")throw Error("Photo absente");
+ const m=/^data:(image\/(?:png|jpeg|webp|gif));base64,([A-Za-z0-9+/]+={0,2})$/i.exec(dataUri);
+ if(!m)throw Error("Photo non encodée en PNG/JPEG/WebP/GIF base64 standard");
+ const bytes=atob(m[2]);
+ if(!bytes.length)throw Error("Photo vide");
+ const head=bytes.slice(0,12);
+ const valid=m[1].toLowerCase()==="image/png"?head.startsWith("\x89PNG\r\n\x1a\n"):
+  m[1].toLowerCase()==="image/jpeg"?head.startsWith("\xff\xd8\xff"):
+  m[1].toLowerCase()==="image/webp"?head.startsWith("RIFF")&&head.slice(8,12)==="WEBP":
+  head.startsWith("GIF87a")||head.startsWith("GIF89a");
+ if(!valid)throw Error("Signature de fichier image incohérente");
+ return bytes.length;
+}
+async function validatePayload(data,expected=false){
+ if(!data||data.format!=="mon-dressing-sauvegarde-verifiee-v1"||
+ !Array.isArray(data.vetements)||!Array.isArray(data.tenues))throw Error("Format de sauvegarde incorrect");
+ const ids=new Set(),perImage=[],warnings=[];
+ for(let i=0;i<data.vetements.length;i++){
+  const p=data.vetements[i];
+  if(!Number.isSafeInteger(p.id)||ids.has(p.id))throw Error("Identifiant vêtement invalide ou dupliqué");
+  ids.add(p.id);
+  try{
+   validateImage(p.photo_url);
+   perImage.push({id:p.id,sha256:await sha256(p.photo_url)});
+  }catch(e){throw Error("Image du vêtement n°"+p.id+" : "+(e?.message||String(e)))}
+ }
+ const lookIds=new Set();
+ for(const outfit of data.tenues){
+  if(!Number.isSafeInteger(outfit.id)||lookIds.has(outfit.id))throw Error("Identifiant de tenue invalide ou dupliqué");
+  lookIds.add(outfit.id);
+  if(!Array.isArray(outfit.pieces))throw Error("Pièces de tenue invalides : "+outfit.id);
+  const missing=outfit.pieces.filter(id=>!ids.has(id));
+  if(missing.length)warnings.push("Tenue "+outfit.id+" : références à "+missing.length+" vêtement(s) absent(s)");
+ }
+ if(expected && (data.counts.vetements!==data.vetements.length||data.counts.tenues!==data.tenues.length))
+  throw Error("Comptage de sauvegarde incorrect");
+ return {images:perImage,warnings};
+}
+$("export").onclick=async()=>{
+ if(!signedIn||busy)return;
+ busy=true;state();$("progress").classList.remove("hidden");$("progress").value=0;
+ try{
+  message("Lecture des données : aucun changement dans le dressing.");
+  const vetements=await fetchAll("vêtements","*",(done,total)=>{
+   $("progress").value=total?done/Math.max(1,total)*.8:0;
+   $("export-detail").textContent="Photos et fiches lues : "+done+"/"+total;
+  });
+  const tenues=await fetchAll("tenues","*");
+  const data={format:"mon-dressing-sauvegarde-verifiee-v1",date:new Date().toISOString(),
+   counts:{vetements:vetements.length,tenues:tenues.length},vetements,tenues};
+  $("progress").value=.85;message("Vérification des photos et des références…");
+  const audit=await validatePayload(data,true);
+  $("progress").value=.95;
+  const contenu=JSON.stringify(data);
+  const checksum=await sha256(contenu);
+  const envelope={format:"mon-dressing-archive-v1",sha256:checksum,data};
+  const blob=new Blob([JSON.stringify(envelope)],{type:"application/json"});
+  const url=URL.createObjectURL(blob),link=document.createElement("a");
+  link.href=url;link.download="mon-dressing-sauvegarde-privee-"+new Date().toISOString().slice(0,10)+".json";
+  document.body.append(link);link.click();link.remove();
+  // Retarder la révocation pour laisser le temps au navigateur d'engager le téléchargement.
+  setTimeout(()=>URL.revokeObjectURL(url),120000);
+  $("progress").value=1;
+  message("Téléchargement demandé : "+fmt(vetements.length)+" vêtements, "+fmt(tenues.length)+
+   " tenues et "+fmt(audit.images.length)+" photos vérifiées.\n"+
+   (audit.warnings.length?"Avertissements :\n"+audit.warnings.join("\n")+"\n":"")+
+   "ÉTAPE OBLIGATOIRE : sélectionner le fichier téléchargé dans la section 3 pour le vérifier.");
+ }catch(e){message("Sauvegarde NON validée : "+(e?.message||String(e))+"\nAucune donnée modifiée.");}
+ finally{busy=false;state()}
+};
+$("check-file").onchange=state;
+$("check").onclick=async()=>{
+ if(busy||!$("check-file").files?.length)return;
+ busy=true;state();
+ try{
+  const file=$("check-file").files[0];
+  message("Lecture et contrôle du fichier local…");
+  const raw=await file.text();
+  const envelope=JSON.parse(raw);
+  if(envelope.format!=="mon-dressing-archive-v1"||typeof envelope.sha256!=="string")
+   throw Error("Le fichier ne correspond pas au format attendu");
+  const checksum=await sha256(JSON.stringify(envelope.data));
+  if(checksum!==envelope.sha256)throw Error("Empreinte SHA-256 différente : fichier altéré ou incomplet");
+  const audit=await validatePayload(envelope.data,true);
+  message("FICHIER INTÈGRE : empreinte SHA-256 vérifiée.\n"+
+   fmt(envelope.data.vetements.length)+" fiches vêtements, "+
+   fmt(envelope.data.tenues.length)+" tenues et "+
+   fmt(audit.images.length)+" photos lisibles.\n"+
+   (audit.warnings.length?"Avertissements : "+audit.warnings.join(" ; ")+"\n":"")+
+   "Le fichier est une sauvegarde privée vérifiée, pas encore un test de restauration.");
+ }catch(e){message("ÉCHEC DE VÉRIFICATION : "+(e?.message||String(e)));}
+ finally{busy=false;state()}
+};
+session();
+</script>
+</body>
+</html>
