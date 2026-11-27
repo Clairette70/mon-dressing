@@ -183,3 +183,15 @@ Le test B révèle un défaut de robustesse indépendant de la qualité stylisti
 - Aucun changement de la V9 ou des tables de catalogue, et aucun appel IA payant déclenché par le correctif.
 
 **Prochaine vérification :** réessayer le remplacement du manteau dans le scénario H. L'IA peut proposer une veste adaptée, ou refuser pour un motif stylistique réel ; elle ne doit plus refuser simplement parce que la catégorie « manteau » n'a pas d'autre exemplaire.
+
+
+## 16. Reprise et audit sécurité/stockage du 27 novembre 2026
+
+**État :** vérifications réalisées, V9 et données personnelles non modifiées.
+
+- Audit documenté dans [AUDIT_SECURITE_ET_MIGRATION_PHOTOS_2026-11-27.md](AUDIT_SECURITE_ET_MIGRATION_PHOTOS_2026-11-27.md). Il établit 50 photos stockées dans la base comme `data:image` (environ 60,9 Mo), bucket privé vide et politique Storage liée à un identifiant utilisateur inexistant ; le dépôt GitHub est public.
+- Les tables `vêtements` et `tenues` ont RLS activée et des politiques réservées à l'utilisateur attendu ; ceci **ne prouve pas** une absence totale de risque et ne sécurise pas le code public.
+- `public.rls_auto_enable()`, fonction privilégiée attachée au déclencheur d'événements `ensure_rls`, est accessible en RPC aux rôles `anon` et `authenticated` d'après les advisors. Une révocation temporaire `BEGIN/ROLLBACK` a été testée : elle retirait l'exécution des deux rôles et gardait le déclencheur activé. **Aucune révocation permanente appliquée**.
+- Avis supplémentaire : protection contre les mots de passe compromis désactivée. Ne pas dire que les alertes sont corrigées.
+- **Amélioration non destructive du laboratoire :** `test-styles-labo.html` affiche désormais directement la section des scénarios F à J (avec H) ; diagnostic gratuit toujours nécessaire pour activer les tests payants. Validation de syntaxe JavaScript réussie, fonctionnement sur appareil à confirmer.
+- **Prochaine décision :** sauvegarde privée restaurable, puis règles Storage correctes et migration progressive des photos, sans supprimer les originaux ni modifier la V9 prématurément. L'hébergement privé du code requiert un choix tenant compte de GitHub Pages et du fait que le JavaScript navigateur demeure inspectable.
