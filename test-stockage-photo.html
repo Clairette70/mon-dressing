@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mon Dressing — Test privé d'une photo</title>
+<style>
+:root{--accent:#654158;--line:#e4dae2}*{box-sizing:border-box}
+body{margin:0;background:#f8f6f7;color:#312b36;font:15px/1.5 system-ui,-apple-system,Arial,sans-serif}
+main{max-width:780px;margin:auto;padding:20px}
+h1,h2{font-family:Georgia,serif;font-weight:normal}
+h1{font-size:30px}
+section{padding:18px;border:1px solid var(--line);border-radius:14px;background:white;margin:15px 0}
+input,select{width:100%;padding:10px;border:1px solid #d6c9d2;border-radius:8px;font:inherit}
+label{display:block;margin:10px 0;font-size:13px}
+button{border:0;border-radius:9px;padding:12px 14px;background:var(--accent);color:white;font-weight:600;cursor:pointer}
+button:disabled{opacity:.5;cursor:not-allowed}
+p{margin:8px 0 12px}
+#log{padding:13px;border-radius:9px;background:#f4eef2;white-space:pre-wrap;overflow-wrap:anywhere;min-height:60px}
+small,.small{color:#736975;font-size:13px}
+</style></head>
+<body><main>
+<h1>Mon Dressing — test privé d'une photo</h1>
+<p>Un essai réversible, sans modifier tes vêtements, tes tenues ni l'application V9.</p>
+<section><h2>1. Connexion</h2><p id="auth">Vérification de la connexion…</p>
+<div id="login" hidden><label>E-mail<input type="email" id="email" autocomplete="username"></label>
+<label>Mot de passe<input type="password" id="password" autocomplete="current-password"></label>
+<button id="connect">Se connecter</button></div></section>
+<section><h2>2. Tester une seule photo</h2>
+<p>Choisis un vêtement puis lance le test. La copie de la photo sera enregistrée dans le bucket privé « photos-vetements » avec un nom de test. L'original restera dans la fiche.</p>
+<label>Vêtement à vérifier<select id="piece" disabled><option value="">Connexion requise</option></select></label>
+<button id="test" disabled>Copier et vérifier cette photo</button>
+<p class="small">Le transfert n'est lancé que lorsque tu cliques sur ce bouton. Aucune requête à un fournisseur d'IA.</p>
+</section>
+<section><h2>3. Vérification</h2><div id="log" role="status" aria-live="polite">Aucun test effectué.</div>
+<p class="small">Un résultat « identique » signifie que le fichier téléchargé depuis le stockage privé contient exactement les mêmes octets que la photo encodée dans la fiche. Cela ne vaut pas encore validation de l'affichage final ni de la migration complète.</p>
+</section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+"use strict";
+const URL_SUPABASE="https://vidypbmhsdjacjrxeqlr.supabase.co";
+const CLE_PUBLIQUE="sb_publishable_Mt_Wtn1lLTPYOb5Sh2PH3A_5GdD3yRd";
+const db=window.supabase?.createClient(URL_SUPABASE,CLE_PUBLIQUE);
+const $=id=>document.getElementById(id);
+let user=null,working=false;
+const report=s=>$("log").textContent=s;
+function controls(){
+ $("test").disabled=working||!user||!$("piece").value;
+ $("piece").disabled=working||!user;
+ $("connect").disabled=working;
+}
+async function auth(){
+ if(!db){$("auth").textContent="La bibliothèque Supabase n'a pas chargé.";return;}
+ const {data,error}=await db.auth.getUser();
+ user=error?null:data?.user||null;
+ $("auth").textContent=user?"Compte connecté. Choisis une seule pièce.":"Connecte-toi à Mon Dressing.";
+ $("login").hidden=!!user;
+ if(user)await populate();
+ controls();
+}
+async function populate(){
+ const {data,error}=await db.from("vêtements").select("id,nom").order("id").limit(500);
+ if(error){report("Liste inaccessible : "+error.message);return;}
+ const sel=$("piece");
+ sel.replaceChildren(new Option("Choisir un vêtement…",""));
+ for(const p of data||[])sel.add(new Option(p.nom||"Pièce "+p.id,String(p.id)));
+ controls();
+}
+$("connect").onclick=async()=>{
+ if(!db||working)return;
+ working=true;controls();
+ try{
+  const {error}=await db.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});
+  if(error)throw error;
+  $("password").value="";
+  await auth();
+ }catch(e){$("auth").textContent="Connexion impossible : "+(e.message||String(e))}
+ finally{working=false;controls()}
+};
+$("piece").onchange=controls;
+function fromDataUri(uri){
+ if(typeof uri!=="string")throw new Error("Aucune photo présente.");
+ const m=/^data:(image\/(?:png|jpeg|webp|gif));base64,([A-Za-z0-9+/]+={0,2})$/i.exec(uri);
+ if(!m)throw new Error("La photo n'est pas un format base64 pris en charge.");
+ const bin=atob(m[2]),bytes=new Uint8Array(bin.length);
+ for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+ if(!bytes.length)throw new Error("Photo vide.");
+ return {bytes,mime:m[1].toLowerCase()};
+}
+async function checksum(bytes){
+ const hash=await crypto.subtle.digest("SHA-256",bytes);
+ return Array.from(new Uint8Array(hash),n=>n.toString(16).padStart(2,"0")).join("");
+}
+$("test").onclick=async()=>{
+ if(working||!user||!$("piece").value)return;
+ working=true;controls();
+ try{
+  const id=Number($("piece").value);
+  if(!Number.isSafeInteger(id)||id<1)throw new Error("Vêtement invalide.");
+  report("Lecture de la photo de la fiche…");
+  const {data,error}=await db.from("vêtements").select("id,photo_url").eq("id",id).single();
+  if(error||!data)throw new Error("Lecture impossible : "+(error?.message||"inconnue"));
+  const {bytes,mime}=fromDataUri(data.photo_url);
+  const digest=await checksum(bytes);
+  const ext=mime.split("/")[1]==="jpeg"?"jpg":mime.split("/")[1];
+  const path=user.id+"/migration-test/"+id+"-"+digest.slice(0,20)+"."+ext;
+  const store=db.storage.from("photos-vetements");
+  report("Envoi d'une copie dans le stockage privé. Aucun original n'est supprimé…");
+  const payload=new Blob([bytes],{type:mime});
+  const {error:uploadError}=await store.upload(path,payload,{contentType:mime,upsert:false});
+  if(uploadError){
+   // Pour un test déjà exécuté, vérifier le fichier existant, sans écrasement.
+   if(!/already exists|duplicate|409|resource_already_exists/i.test(uploadError.message||""))
+    throw new Error("Envoi refusé : "+uploadError.message);
+  }
+  report("Copie stockée. Relecture authentifiée et comparaison…");
+  const {data:download,error:downloadError}=await store.download(path);
+  if(downloadError||!download)throw new Error("Relecture impossible : "+(downloadError?.message||"inconnue"));
+  const back=new Uint8Array(await download.arrayBuffer());
+  const digestBack=await checksum(back);
+  if(bytes.byteLength!==back.byteLength||digest!==digestBack)
+   throw new Error("La copie diffère de l'original : migration interrompue.");
+  report("TEST RÉUSSI : copie strictement identique.\n"+
+   "Fiche n°"+id+" • "+bytes.byteLength+" octets • SHA-256 "+digest.slice(0,16)+"…\n"+
+   "Chemin privé : "+path+"\n"+
+   "L'original est conservé dans la base. Aucune tenue modifiée.\n"+
+   "La copie de test restera dans le stockage privé pour l'étape suivante.");
+ }catch(e){report("TEST NON VALIDÉ : "+(e.message||String(e))+"\nAucune modification de fiche effectuée.");}
+ finally{working=false;controls()}
+};
+auth();
+</script></body></html>
