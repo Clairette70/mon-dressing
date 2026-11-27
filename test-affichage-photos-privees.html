@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mon Dressing — Galerie privée de vérification</title>
+<style>
+:root{--accent:#654158;--line:#e4dae2}*{box-sizing:border-box}
+body{margin:0;background:#f8f6f7;color:#302b35;font:15px/1.5 system-ui,-apple-system,Arial,sans-serif}
+main{max-width:980px;margin:auto;padding:20px}
+h1,h2{font-family:Georgia,serif;font-weight:normal}
+h1{font-size:30px}
+section{padding:18px;border:1px solid var(--line);border-radius:14px;background:white;margin:15px 0}
+input{width:100%;padding:11px;border:1px solid #d6c9d2;border-radius:8px;font:inherit}
+label{display:block;font-size:13px;margin:10px 0}
+button{border:0;border-radius:9px;padding:12px 15px;background:var(--accent);color:white;font-weight:600;cursor:pointer;margin:4px 0}
+button:disabled{opacity:.5;cursor:not-allowed}
+p{margin:8px 0 12px}
+#log{padding:13px;border-radius:9px;background:#f4eef2;white-space:pre-wrap;overflow-wrap:anywhere;min-height:42px}
+#photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.item{border:1px solid var(--line);border-radius:10px;overflow:hidden;text-align:center;background:#fff;margin:0}
+.item img{display:block;width:100%;height:160px;object-fit:contain;background:#fff}
+.item figcaption{font-size:12px;padding:7px;min-height:44px;overflow-wrap:anywhere}
+.note{font-size:13px;color:#625b64}
+progress{width:100%;height:15px}
+</style></head>
+<body><main>
+<h1>Mon Dressing — test d'affichage privé</h1>
+<p>Galerie de contrôle indépendante. Les images sont lues directement dans le stockage privé Supabase, après connexion. Aucune modification du dressing, aucun appel IA.</p>
+<section><h2>1. Connexion</h2><p id="auth">Vérification de la connexion…</p>
+<div id="login" hidden><label>E-mail Mon Dressing<input type="email" id="email" autocomplete="username"></label>
+<label>Mot de passe<input type="password" id="password" autocomplete="current-password"></label>
+<button id="connect">Se connecter</button></div></section>
+<section><h2>2. Afficher les photos privées</h2>
+<button id="show" disabled>Charger et afficher mes 50 photos privées</button>
+<p><progress id="progress" max="1" value="0"></progress></p>
+<div id="log" role="status" aria-live="polite">Aucune photo chargée.</div>
+<p class="note">Vérifie notamment la transparence des PNG, les couleurs et les proportions. Les images sont conservées en mémoire le temps d'afficher la galerie.</p>
+</section>
+<section><h2>3. Galerie</h2><div id="photos"></div></section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+"use strict";
+const SB_URL="https://vidypbmhsdjacjrxeqlr.supabase.co",SB_KEY="sb_publishable_Mt_Wtn1lLTPYOb5Sh2PH3A_5GdD3yRd";
+const db=window.supabase?.createClient(SB_URL,SB_KEY),$=id=>document.getElementById(id);
+let user=null,working=false,urls=[];
+function state(){$("show").disabled=!user||working;$("connect").disabled=working}
+function report(s){$("log").textContent=s}
+function clear(){
+ for(const url of urls)URL.revokeObjectURL(url);
+ urls=[];$("photos").replaceChildren();
+}
+async function auth(){
+ if(!db){$("auth").textContent="Bibliothèque Supabase indisponible.";return}
+ const {data,error}=await db.auth.getUser();
+ user=error?null:data?.user||null;
+ $("auth").textContent=user?"Compte connecté. Les photos sont privées.":"Connecte-toi avec tes identifiants Mon Dressing.";
+ $("login").hidden=!!user;state();
+}
+$("connect").onclick=async()=>{
+ if(!db||working)return;
+ working=true;state();
+ try{
+  const {error}=await db.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});
+  if(error)throw error;
+  $("password").value="";await auth();
+ }catch(e){$("auth").textContent="Connexion impossible : "+(e.message||String(e))}
+ finally{working=false;state()}
+};
+$("show").onclick=async()=>{
+ if(!user||working)return;
+ working=true;state();clear();$("progress").value=0;
+ try{
+  report("Lecture du catalogue et des références des copies privées…");
+  const {data:pieces,error:dbError}=await db.from("vêtements").select("id,nom").order("id").limit(501);
+  if(dbError)throw Error("Catalogue inaccessible : "+dbError.message);
+  if(!pieces||!pieces.length||pieces.length>500)throw Error("Nombre de vêtements invalide.");
+  const prefix=user.id+"/photos-v1";
+  const {data:files,error:listError}=await db.storage.from("photos-vetements").list(prefix,{limit:501});
+  if(listError)throw Error("Dossier privé inaccessible : "+listError.message);
+  if((files||[]).length>500)throw Error("Trop de fichiers : liste incomplète.");
+  const paths=new Map();
+  for(const f of files||[]){
+   const m=/^([0-9]+)-[a-f0-9]{20}\.(png|jpg|webp|gif)$/i.exec(f.name||"");
+   if(!m)continue;
+   const id=Number(m[1]);
+   if(paths.has(id))throw Error("Plusieurs copies détectées pour la pièce "+id+".");
+   paths.set(id,prefix+"/"+f.name);
+  }
+  const ids=new Set(pieces.map(p=>p.id));
+  if(ids.size!==pieces.length)throw Error("Doublon dans les identifiants des vêtements.");
+  if(pieces.some(p=>!paths.has(p.id)))throw Error("Une ou plusieurs photos privées manquent.");
+  let rendered=0;
+  for(const p of pieces){
+   const {data,error}=await db.storage.from("photos-vetements").download(paths.get(p.id));
+   if(error||!data)throw Error("Impossible de lire la pièce "+p.id+" : "+(error?.message||"fichier absent"));
+   const url=URL.createObjectURL(data);urls.push(url);
+   const item=document.createElement("figure");item.className="item";
+   const img=new Image();img.loading="lazy";img.alt=p.nom||"Vêtement "+p.id;img.src=url;
+   const caption=document.createElement("figcaption");caption.textContent=p.nom||"Vêtement "+p.id;
+   item.append(img,caption);$("photos").append(item);
+   rendered++;
+   $("progress").value=rendered/pieces.length;
+   report(rendered+"/"+pieces.length+" fichiers privés lus. Aucun appel IA.");
+   await new Promise(resolve=>setTimeout(resolve,0));
+  }
+  // Vérifier également que le navigateur sait réellement décoder toutes les images.
+  const images=Array.from($("photos").querySelectorAll("img"));
+  const decoded=await Promise.all(images.map(async img=>{
+   try{await img.decode();return true}catch{return false}
+  }));
+  const failed=decoded.filter(x=>!x).length;
+  if(failed)throw Error(failed+" image(s) ne peuvent pas être décodées par le navigateur.");
+  report("GALERIE PRIVÉE VÉRIFIÉE : "+rendered+"/"+pieces.length+" photos affichées et décodées.\n"+
+    "Toutes les images proviennent du bucket privé. Aucune donnée ni aucune tenue n'a été modifiée.");
+ }catch(e){report("CONTRÔLE INCOMPLET : "+(e.message||String(e))+"\nAucune donnée modifiée.");}
+ finally{working=false;state()}
+};
+window.addEventListener("pagehide",clear);
+auth().catch(e=>{report("Erreur d'initialisation : "+(e.message||String(e)));state()});
+</script></body></html>
